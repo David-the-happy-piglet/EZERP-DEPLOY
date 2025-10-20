@@ -1,0 +1,11 @@
+node_modules
+npm-debug.log
+.npmrc
+.env
+tmp
+.cache
+dist
+coverage
+**/*.local.*
+
+

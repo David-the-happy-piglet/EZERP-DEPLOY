@@ -1,0 +1,265 @@
+/* Add new layout styles at the top of the file */
+.ezerp-container {
+    /* display: flex; */
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+    padding-top: 80px;
+
+}
+
+.ezerp-row {
+    width: 100%;
+    padding: 10px 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    background-color: white;
+}
+
+.ezerp-main-container {
+    display: flex;
+    flex: 1;
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    padding-left: 0px;
+}
+
+.ezerp-sidebar {
+    width: 180px;
+    height: calc(100vh - 70px);
+    position: sticky;
+    top: 70px;
+}
+
+.ezerp-main-content {
+    flex: 1;
+    padding: 0px;
+    overflow-y: auto;
+    background-color: #fff;
+    transition: all 0.3s ease;
+    margin-left: 0px;
+}
+
+/* Responsive adjustments for different screen sizes */
+@media (max-width: 1200px) {
+    .ezerp-sidebar {
+        width: 180px;
+        min-width: 180px;
+    }
+
+    .ezerp-main-nav {
+        width: 180px;
+    }
+}
+
+@media (max-width: 992px) {
+    .ezerp-sidebar {
+        width: 160px;
+        min-width: 160px;
+    }
+
+    .ezerp-main-nav {
+        width: 160px;
+    }
+}
+
+@media (max-width: 768px) {
+    .ezerp-main-container {
+        flex-direction: column;
+    }
+
+    .ezerp-sidebar {
+        width: 100%;
+        max-width: 100%;
+        height: auto;
+        min-height: auto;
+        position: relative;
+        top: 0;
+    }
+
+    .ezerp-main-content {
+        width: 100%;
+    }
+}
+
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body * {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+@media (min-width: 768px) {
+    #wd-kambaz .wd-main-content-offset {
+        padding-left: 140px !important;
+    }
+}
+
+/* .ezerp-main-nav>.list-group-item.active {
+    color: black;
+    background-color: white;
+    border-left: 3px solid black !important;
+} */
+
+.ezerp-main-nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 180px;
+}
+
+.ezerp-main-nav>.list-group-item {
+    border-radius: 0;
+    border-bottom: 1px solid #ccc;
+    padding: 12px 15px;
+    width: 100%;
+}
+
+.ezerp-main-nav>.list-group-item:hover {
+    background-color: #f0f0f0;
+}
+
+.list-group-item {
+    --bs-list-group-border-color: gray;
+}
+
+.list-group-item:hover {
+    background-color: #f0f0f0;
+}
+
+.ezerp-welcome-badge {
+    background-color: #f0f0f0;
+    padding: 10px;
+    width: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+    padding-left: 20px;
+    margin-bottom: 30px;
+}
+
+.ezerp-welcome-badge h1 {
+    margin: 0;
+    padding: 0;
+    font-size: 1.5rem;
+    margin-left: 20px;
+}
+
+.signout-container {
+    position: absolute;
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+/* Account and Profile Styling */
+.account-container {
+    padding: 20px;
+    margin-left: 0px;
+}
+
+.account-sidebar {
+    background-color: #f8f9fa;
+    padding: 5px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: fixed;
+    top: 100px;
+    left: 120px;
+    width: 160px;
+    z-index: 100;
+}
+
+.account-nav-link {
+    color: #495057;
+    padding: 8px 15px;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    transition: all 0.2s;
+}
+
+.account-nav-link:hover {
+    background-color: #e9ecef;
+    color: #212529;
+}
+
+.account-nav-link.active {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.account-content {
+    background-color: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-left: 0px;
+}
+
+.profile-container,
+.password-change-container {
+    max-width: 100%;
+}
+
+.profile-container h2,
+.password-change-container h2 {
+    color: #212529;
+    margin-bottom: 20px;
+}
+
+.profile-container .card,
+.password-change-container .card {
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.profile-container .card-body,
+.password-change-container .card-body {
+    padding: 10px;
+}
+
+.profile-container .form-group,
+.password-change-container .form-group {
+    margin-bottom: 12px;
+}
+
+.profile-container .form-control,
+.password-change-container .form-control {
+    padding: 8px 12px;
+}
+
+.profile-container .form-label,
+.password-change-container .form-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.profile-container .form-control:disabled,
+.password-change-container .form-control:disabled {
+    background-color: #f8f9fa;
+    opacity: 0.8;
+}
+
+/* Add styles for new account page layout */
+.account-sidebar-new {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.account-content-new {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}

@@ -1,0 +1,52 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:6
+    container_name: ez-erp-mongo
+    restart: unless-stopped
+    environment:
+      - MONGO_INITDB_DATABASE=ez-erp
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+
+  backend:
+    build:
+      context: ./EZ-ERP-BACKEND
+    container_name: ez-erp-backend
+    env_file: ./.env
+    environment:
+      - NODE_ENV=production
+      - PORT=${BACKEND_PORT}
+      - MONGODB_URI=${MONGODB_URI}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - TRUST_PROXY=${TRUST_PROXY}
+    ports:
+      - "${BACKEND_PORT}:3000"
+    depends_on:
+      - mongo
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./EZ-ERP-FRONTEND
+      args:
+        - VITE_API_URL=${VITE_API_URL}
+    container_name: ez-erp-frontend
+    ports:
+      - "${FRONTEND_PORT}:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+networks:
+  default:
+    name: ez-erp
+
+volumes:
+  mongo_data:
+
+
