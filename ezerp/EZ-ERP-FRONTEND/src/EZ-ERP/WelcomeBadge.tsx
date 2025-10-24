@@ -1,6 +1,7 @@
 import { Button, Modal, Form } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { setCurrentUser } from "./Account/reducer";
+import { hasAnyRole, Role } from "./utils/roles";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { messageService } from "./services/api";
@@ -80,7 +81,7 @@ export default function WelcomeBadge() {
             <h1>{getGreeting()}, {currentUser.firstName}</h1>
 
             <div className="signout-container">
-                {currentUser.role === "ADMIN" && (
+                {hasAnyRole(currentUser, Role.ADMIN) && (
                     <Button
                         onClick={openAnnouncementModal}
                         className="btn-sm btn-primary me-2"

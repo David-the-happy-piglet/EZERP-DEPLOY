@@ -1,17 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Table, Button, Modal, Form, Alert, Row, Col, Card } from 'react-bootstrap';
 import { useSelector } from 'react-redux';
+// 不依赖公共工具，直接在本页判断角色（兼容中英文）
 import { authService } from '../services/api';
 
 export enum UserRole {
-    ADMIN = '管理员',
-    MKT = '营销',
-    MACHINING = '机加工',
-    QC = '质检',
-    CHEMIST = '镀金',
-    FINANCE = '财务',
-    HR = '人力资源',
-    GUEST = '访客'
+    ADMIN = 'ADMIN',
+    MKT = 'MKT',
+    MACHINING = 'MACHINING',
+    QC = 'QC',
+    CHEMIST = 'CHEMIST',
+    FINANCE = 'FINANCE',
+    HR = 'HR',
+    GUEST = 'GUEST'
 }
 
 interface User {
@@ -53,7 +54,14 @@ export default function HumanResource() {
     });
 
     const currentUser = useSelector((state: any) => state.accountReducer?.currentUser);
-    const canManageUsers = currentUser?.role === UserRole.ADMIN || currentUser?.role === UserRole.HR;
+    const canManageUsers = (() => {
+        const roleRaw = (currentUser?.role || '').trim();
+        const roleUpper = roleRaw.toUpperCase();
+        // 英文代码或中文展示都支持
+        if (roleUpper === 'ADMIN' || roleUpper === 'HR') return true;
+        if (roleRaw === '管理员' || roleRaw === '人力资源') return true;
+        return false;
+    })();
 
     useEffect(() => {
         fetchUsers();

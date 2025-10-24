@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Table, Card, Form, Button, Alert, Modal, Spinner, Badge } from 'react-bootstrap';
 import { useSelector } from 'react-redux';
+import { hasAnyRole, Role } from '../utils/roles';
 import { taskService, authService } from '../services/api';
 
 
@@ -30,7 +31,7 @@ export default function Tasks() {
     const { orderNumber } = useParams<{ orderNumber: string }>();
     const navigate = useNavigate();
     const currentUser = useSelector((state: any) => state.accountReducer?.currentUser);
-    const isAdmin = currentUser?.role === 'ADMIN';
+    const isAdmin = hasAnyRole(currentUser, Role.ADMIN);
 
     const [tasks, setTasks] = useState<Task[]>([]);
     const [users, setUsers] = useState<User[]>([]);

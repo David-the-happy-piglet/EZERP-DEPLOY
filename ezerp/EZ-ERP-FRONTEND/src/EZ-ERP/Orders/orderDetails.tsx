@@ -4,6 +4,7 @@ import { Button, Card, Row, Col, Alert, Badge, Table, Modal } from 'react-bootst
 import { orderService } from '../services/api';
 import type { Order } from '../types';
 import { useSelector } from 'react-redux';
+import { hasAnyRole, Role } from '../utils/roles';
 
 export default function OrderDetails() {
     const { orderNumber } = useParams<{ orderNumber: string }>();
@@ -13,7 +14,7 @@ export default function OrderDetails() {
     const [error, setError] = useState<string | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const currentUser = useSelector((state: any) => state.accountReducer?.currentUser);
-    const canManageOrders = currentUser?.role === 'ADMIN' || currentUser?.role === 'MKT';
+    const canManageOrders = hasAnyRole(currentUser, Role.ADMIN, Role.MKT);
 
     useEffect(() => {
         fetchOrderDetails();

@@ -3,6 +3,7 @@ import { Table, Card, Form, Button, Alert, Badge, Modal, Row, Col } from 'react-
 import { useNavigate } from 'react-router-dom';
 import { orderService, taskService, authService } from '../services/api';
 import { useSelector } from 'react-redux';
+import { hasAnyRole, Role } from '../utils/roles';
 import type { Order } from '../types';
 /* import axios from 'axios'; */
 
@@ -38,7 +39,7 @@ export default function ProjectManagement() {
     const [error, setError] = useState<string | null>(null);
     const [taskError, setTaskError] = useState<string | null>(null);
     const currentUser = useSelector((state: any) => state.accountReducer?.currentUser);
-    const isAdmin = currentUser?.role === 'ADMIN';
+    const isAdmin = hasAnyRole(currentUser, Role.ADMIN);
     const navigate = useNavigate();
 
     // For task details modal

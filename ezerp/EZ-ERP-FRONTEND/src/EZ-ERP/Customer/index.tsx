@@ -3,6 +3,7 @@ import { customerService } from '../services/api';
 import type { Customer, Address } from '../types';
 import { Button, Table, Modal, Form, Alert, Spinner, Card } from 'react-bootstrap';
 import { useSelector } from 'react-redux';
+import { hasAnyRole, Role } from '../utils/roles';
 
 export default function Customer() {
     const [customers, setCustomers] = useState<Customer[]>([]);
@@ -28,7 +29,7 @@ export default function Customer() {
     });
 
     const currentUser = useSelector((state: any) => state.accountReducer?.currentUser);
-    const canManageCustomers = currentUser?.role === 'ADMIN' || currentUser?.role === 'MKT';
+    const canManageCustomers = hasAnyRole(currentUser, Role.ADMIN, Role.MKT);
 
     useEffect(() => {
         fetchCustomers();

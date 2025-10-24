@@ -1,5 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { hasAnyRole, Role } from '../utils/roles';
 import { Card } from 'react-bootstrap';
 import OrderTable from './orderTable';
 import OrderCreate from './orderCreate';
@@ -9,7 +10,7 @@ export default function Orders() {
     const navigate = useNavigate();
     const { orderNumber } = useParams();
     const currentUser = useSelector((state: any) => state.accountReducer?.currentUser);
-    const canManageOrders = currentUser?.role === 'ADMIN' || currentUser?.role === 'MKT';
+    const canManageOrders = hasAnyRole(currentUser, Role.ADMIN, Role.MKT);
 
     const handleOrderClick = (orderNumber: string) => {
         navigate(`/EZERP/Orders/${orderNumber}`);
