@@ -28,7 +28,7 @@ export default function EZ_ERP() {
 
                 <div id="ezerp-content" className="ezerp-main-content">
                     <Routes>
-                        <Route path="Overview/*" element={<Overview />} />
+                        <Route path="Overview/*" element={<ProtectedRoute><Overview /></ProtectedRoute>} />
                         <Route path="" element={<Navigate to="Overview" />} />
                         <Route path="Orders/*" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
                         <Route path="Orders/:orderNumber" element={<ProtectedRoute><Orders /></ProtectedRoute>} />

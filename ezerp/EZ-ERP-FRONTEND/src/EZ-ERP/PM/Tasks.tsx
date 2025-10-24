@@ -70,7 +70,7 @@ export default function Tasks() {
             setTasks(response.data as Task[]);
             setError(null);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to fetch tasks');
+            setError(err.response?.data?.message || '加载任务失败');
         } finally {
             setLoading(false);
         }
@@ -81,7 +81,7 @@ export default function Tasks() {
             const response = await authService.getAllUsers();
             setUsers(response.data as User[]);
         } catch (err: any) {
-            console.error('Failed to fetch users:', err);
+            console.error('加载用户失败:', err);
         }
     };
 
@@ -229,14 +229,14 @@ export default function Tasks() {
     return (
         <div className="container mt-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <h2>Tasks for Order: {orderNumber}</h2>
+                <h2>订单 {orderNumber} 的任务</h2>
                 <div>
                     <Button variant="secondary" className="me-2" onClick={() => navigate('/EZERP/PM')}>
-                        Back to Project Management
+                        返回项目管理
                     </Button>
                     {isAdmin && (
                         <Button variant="primary" onClick={handleCreateTask}>
-                            Create New Task
+                            创建新任务
                         </Button>
                     )}
                 </div>
@@ -248,20 +248,20 @@ export default function Tasks() {
                 <Card.Body>
                     {tasks.length === 0 ? (
                         <div className="text-center py-4">
-                            <p className="mb-0">No tasks found for this order.</p>
+                            <p className="mb-0">没有找到此订单的任务。</p>
                         </div>
                     ) : (
                         <Table striped bordered hover responsive>
                             <thead>
                                 <tr>
-                                    <th>Title</th>
-                                    <th>From</th>
-                                    <th>To</th>
-                                    <th>Created</th>
-                                    <th>Due Date</th>
-                                    <th>Priority</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
+                                    <th>标题</th>
+                                    <th>来自</th>
+                                    <th>指派给</th>
+                                    <th>创建时间</th>
+                                    <th>截止日期</th>
+                                    <th>优先级</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -281,7 +281,7 @@ export default function Tasks() {
                                                 className="me-1"
                                                 onClick={() => handleViewDetails(task)}
                                             >
-                                                Details
+                                                查看详情
                                             </Button>
                                             {isAdmin && (
                                                 <>
@@ -291,7 +291,7 @@ export default function Tasks() {
                                                         className="me-1"
                                                         onClick={() => handleEditTask(task)}
                                                     >
-                                                        Edit
+                                                        编辑
                                                     </Button>
                                                     <Button
                                                         variant="outline-danger"
@@ -299,7 +299,7 @@ export default function Tasks() {
                                                         className="me-1"
                                                         onClick={() => handleDeleteTask(task)}
                                                     >
-                                                        Delete
+                                                        删除
                                                     </Button>
                                                 </>
                                             )}
@@ -309,7 +309,7 @@ export default function Tasks() {
                                                     size="sm"
                                                     onClick={() => handleMarkComplete(task._id)}
                                                 >
-                                                    Complete
+                                                    完成
                                                 </Button>
                                             )}
                                         </td>
@@ -329,22 +329,22 @@ export default function Tasks() {
                 <Modal.Body>
                     {selectedTask && (
                         <>
-                            <h5>Description</h5>
+                            <h5>描述</h5>
                             <p>{selectedTask.description}</p>
 
-                            <h5>Details</h5>
-                            <p><strong>Assigned By:</strong> {getUserName(selectedTask.assignedBy)}</p>
-                            <p><strong>Assigned To:</strong> {getUserName(selectedTask.assignedTo)}</p>
-                            <p><strong>Post Date:</strong> {new Date(selectedTask.postDate).toLocaleString()}</p>
-                            <p><strong>Due Date:</strong> {new Date(selectedTask.dueDate).toLocaleString()}</p>
-                            <p><strong>Status:</strong> {getStatusBadge(selectedTask.status)}</p>
-                            <p><strong>Priority:</strong> {getPriorityBadge(selectedTask.priority)}</p>
+                            <h5>详情</h5>
+                            <p><strong>来自:</strong> {getUserName(selectedTask.assignedBy)}</p>
+                            <p><strong>指派给:</strong> {getUserName(selectedTask.assignedTo)}</p>
+                            <p><strong>创建时间:</strong> {new Date(selectedTask.postDate).toLocaleString()}</p>
+                            <p><strong>截止日期:</strong> {new Date(selectedTask.dueDate).toLocaleString()}</p>
+                            <p><strong>状态:</strong> {getStatusBadge(selectedTask.status)}</p>
+                            <p><strong>优先级:</strong> {getPriorityBadge(selectedTask.priority)}</p>
                         </>
                     )}
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowDetailsModal(false)}>
-                        Close
+                        关闭
                     </Button>
                 </Modal.Footer>
             </Modal>
@@ -357,7 +357,7 @@ export default function Tasks() {
                 <Modal.Body>
                     <Form>
                         <Form.Group className="mb-3">
-                            <Form.Label>Title*</Form.Label>
+                            <Form.Label>标题*</Form.Label>
                             <Form.Control
                                 type="text"
                                 name="title"
@@ -368,7 +368,7 @@ export default function Tasks() {
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Description*</Form.Label>
+                            <Form.Label>描述*</Form.Label>
                             <Form.Control
                                 as="textarea"
                                 rows={3}
@@ -380,14 +380,14 @@ export default function Tasks() {
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Assign To*</Form.Label>
+                            <Form.Label>指派给*</Form.Label>
                             <Form.Select
                                 name="assignedTo"
                                 value={formData.assignedTo || ''}
                                 onChange={handleFormChange}
                                 required
                             >
-                                <option value="">Select User</option>
+                                <option value="">选择用户</option>
                                 {users.map(user => (
                                     <option key={user._id} value={user.username}>
                                         {user.username} ({user.role})
@@ -397,7 +397,7 @@ export default function Tasks() {
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Due Date*</Form.Label>
+                            <Form.Label>截止日期*</Form.Label>
                             <Form.Control
                                 type="date"
                                 name="dueDate"
@@ -408,7 +408,7 @@ export default function Tasks() {
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Priority</Form.Label>
+                            <Form.Label>优先级</Form.Label>
                             <Form.Select
                                 name="priority"
                                 value={formData.priority || 'medium'}
@@ -422,15 +422,15 @@ export default function Tasks() {
 
                         {isEditing && (
                             <Form.Group className="mb-3">
-                                <Form.Label>Status</Form.Label>
+                                <Form.Label>状态</Form.Label>
                                 <Form.Select
                                     name="status"
                                     value={formData.status || 'pending'}
                                     onChange={handleFormChange}
                                 >
-                                    <option value="pending">Pending</option>
-                                    <option value="in progress">In Progress</option>
-                                    <option value="completed">Completed</option>
+                                    <option value="pending">待办</option>
+                                    <option value="in progress">进行中</option>
+                                    <option value="completed">完成</option>
                                 </Form.Select>
                             </Form.Group>
                         )}
@@ -438,10 +438,10 @@ export default function Tasks() {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowTaskModal(false)}>
-                        Cancel
+                        取消
                     </Button>
                     <Button variant="primary" onClick={handleSubmit}>
-                        {isEditing ? 'Save Changes' : 'Create Task'}
+                        {isEditing ? '保存更改' : '创建任务'}
                     </Button>
                 </Modal.Footer>
             </Modal>
@@ -449,17 +449,17 @@ export default function Tasks() {
             {/* Delete Confirmation Modal */}
             <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Confirm Delete</Modal.Title>
+                    <Modal.Title>确认删除</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    Are you sure you want to delete the task "{selectedTask?.title}"? This action cannot be undone.
+                    确定要删除任务 "{selectedTask?.title}"? 此操作无法撤销。
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
-                        Cancel
+                        取消
                     </Button>
                     <Button variant="danger" onClick={handleConfirmDelete}>
-                        Delete
+                        删除
                     </Button>
                 </Modal.Footer>
             </Modal>

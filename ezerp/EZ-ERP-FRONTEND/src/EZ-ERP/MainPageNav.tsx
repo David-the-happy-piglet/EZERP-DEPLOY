@@ -12,13 +12,13 @@ export default function MainPageNav() {
     const { pathname } = useLocation();
 
     const links = [
-        { label: "Overview", path: "/EZERP/Overview", icon: MdDashboard },
-        { label: "PM", path: "/EZERP/PM", icon: FaChartGantt },
-        { label: "Orders", path: "/EZERP/Orders", icon: FaWarehouse },
-        { label: "Customers", path: "/EZERP/Customers", icon: FaHandshake },
-        { label: "Finance", path: "/EZERP/Finance", icon: FaMoneyBillTransfer },
-        { label: "Account", path: "/EZERP/Account", icon: MdManageAccounts },
-        { label: "People", path: "/EZERP/HR", icon: MdGroups }
+        { label: "总览", path: "/EZERP/Overview", icon: MdDashboard },
+        { label: "项目管理", path: "/EZERP/PM", icon: FaChartGantt },
+        { label: "订单", path: "/EZERP/Orders", icon: FaWarehouse },
+        { label: "客户", path: "/EZERP/Customers", icon: FaHandshake },
+        { label: "财务", path: "/EZERP/Finance", icon: FaMoneyBillTransfer },
+        { label: "账户", path: "/EZERP/Account", icon: MdManageAccounts },
+        { label: "人员", path: "/EZERP/HR", icon: MdGroups }
     ];
 
     return (
@@ -34,7 +34,7 @@ export default function MainPageNav() {
                         as={Link}
                         to={link.path}
                         className={`bg-body text-center border-0
-                        ${pathname.includes(link.label)
+                        ${pathname.includes(link.path)
                                 ? "text-primary bg-dark-subtle"
                                 : "text-dark bg-body"}`}
                     >

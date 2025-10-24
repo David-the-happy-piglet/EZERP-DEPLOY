@@ -26,7 +26,7 @@ export default function OrderEdit() {
             setOrder(response.data as Order);
             setLoading(false);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to fetch order details');
+            setError(err.response?.data?.message || '获取订单详情失败');
             setLoading(false);
         }
     };
@@ -36,7 +36,7 @@ export default function OrderEdit() {
             const response = await customerService.getAll();
             setCustomers(response.data as Customer[]);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to fetch customers');
+            setError(err.response?.data?.message || '获取客户列表失败');
         }
     };
 
@@ -54,7 +54,7 @@ export default function OrderEdit() {
             });
             navigate(`/EZERP/Orders/${orderNumber}`);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to update order');
+            setError(err.response?.data?.message || '更新订单失败');
         }
     };
 
@@ -108,23 +108,23 @@ export default function OrderEdit() {
     };
 
     if (loading) {
-        return <div className="container mt-4">Loading...</div>;
+        return <div className="container mt-4">加载中...</div>;
     }
 
     if (!order) {
-        return <div className="container mt-4">Order not found</div>;
+        return <div className="container mt-4">未找到订单</div>;
     }
 
     if (!canManageOrders) {
-        return <div className="container mt-4">You do not have permission to edit orders</div>;
+        return <div className="container mt-4">您没有权限编辑订单</div>;
     }
 
     return (
         <div className="container mt-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <h2>Edit Order</h2>
+                <h2>编辑订单</h2>
                 <Button variant="secondary" onClick={() => navigate(`/EZERP/Orders/${orderNumber}`)}>
-                    Back to Order Details
+                    返回订单详情
                 </Button>
             </div>
 
@@ -136,7 +136,7 @@ export default function OrderEdit() {
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Order Number</Form.Label>
+                                    <Form.Label>订单号</Form.Label>
                                     <Form.Control
                                         type="text"
                                         value={order.orderNumber}
@@ -146,7 +146,7 @@ export default function OrderEdit() {
                             </Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Due Date</Form.Label>
+                                    <Form.Label>交付日期</Form.Label>
                                     <Form.Control
                                         type="date"
                                         value={new Date(order.dueDate).toISOString().split('T')[0]}
@@ -160,30 +160,30 @@ export default function OrderEdit() {
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Status</Form.Label>
+                                    <Form.Label>状态</Form.Label>
                                     <Form.Select
                                         value={order.status}
                                         onChange={(e) => setOrder({ ...order, status: e.target.value as Order['status'] })}
                                     >
-                                        <option value="PENDING">Pending</option>
-                                        <option value="PROCESSING">Processing</option>
-                                        <option value="SHIPPED">Shipped</option>
-                                        <option value="DELIVERED">Delivered</option>
-                                        <option value="CANCELLED">Cancelled</option>
+                                        <option value="PENDING">待处理</option>
+                                        <option value="PROCESSING">处理中</option>
+                                        <option value="SHIPPED">已发货</option>
+                                        <option value="DELIVERED">已送达</option>
+                                        <option value="CANCELLED">已取消</option>
                                     </Form.Select>
                                 </Form.Group>
                             </Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Payment Status</Form.Label>
+                                    <Form.Label>付款状态</Form.Label>
                                     <Form.Select
                                         value={order.paymentStatus}
                                         onChange={(e) => setOrder({ ...order, paymentStatus: e.target.value as Order['paymentStatus'] })}
                                     >
-                                        <option value="PENDING">Pending</option>
-                                        <option value="PAID">Paid</option>
-                                        <option value="FAILED">Failed</option>
-                                        <option value="REFUNDED">Refunded</option>
+                                        <option value="PENDING">待支付</option>
+                                        <option value="PAID">已支付</option>
+                                        <option value="FAILED">失败</option>
+                                        <option value="REFUNDED">已退款</option>
                                     </Form.Select>
                                 </Form.Group>
                             </Col>
@@ -192,12 +192,12 @@ export default function OrderEdit() {
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Customer</Form.Label>
+                                    <Form.Label>客户</Form.Label>
                                     <Form.Select
                                         value={order.customer._id}
                                         onChange={(e) => handleCustomerSelect(e.target.value)}
                                     >
-                                        <option value="">Select a customer</option>
+                                        <option value="">选择客户</option>
                                         {customers.map((customer) => (
                                             <option key={customer._id} value={customer._id}>
                                                 {customer.companyName} - {customer.name}
@@ -210,11 +210,11 @@ export default function OrderEdit() {
 
                         <Row>
                             <Col md={12}>
-                                <h5>Shipping Address</h5>
+                                <h5>收货地址</h5>
                                 <Row>
                                     <Col md={6}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>Street</Form.Label>
+                                            <Form.Label>街道</Form.Label>
                                             <Form.Control
                                                 type="text"
                                                 value={order.shippingAddress.street}
@@ -224,7 +224,7 @@ export default function OrderEdit() {
                                     </Col>
                                     <Col md={6}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>City</Form.Label>
+                                            <Form.Label>城市</Form.Label>
                                             <Form.Control
                                                 type="text"
                                                 value={order.shippingAddress.city}
@@ -236,7 +236,7 @@ export default function OrderEdit() {
                                 <Row>
                                     <Col md={4}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>State</Form.Label>
+                                            <Form.Label>省/州</Form.Label>
                                             <Form.Control
                                                 type="text"
                                                 value={order.shippingAddress.state}
@@ -246,7 +246,7 @@ export default function OrderEdit() {
                                     </Col>
                                     <Col md={4}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>Country</Form.Label>
+                                            <Form.Label>国家</Form.Label>
                                             <Form.Control
                                                 type="text"
                                                 value={order.shippingAddress.country}
@@ -256,7 +256,7 @@ export default function OrderEdit() {
                                     </Col>
                                     <Col md={4}>
                                         <Form.Group className="mb-3">
-                                            <Form.Label>ZIP Code</Form.Label>
+                                            <Form.Label>邮编</Form.Label>
                                             <Form.Control
                                                 type="text"
                                                 value={order.shippingAddress.zipCode}
@@ -270,14 +270,14 @@ export default function OrderEdit() {
 
                         <Row className="mt-4">
                             <Col>
-                                <h5>Items</h5>
+                                <h5>商品明细</h5>
                                 <Table striped bordered>
                                     <thead>
                                         <tr>
-                                            <th>Product</th>
-                                            <th>Quantity</th>
-                                            <th>Price</th>
-                                            <th>Total</th>
+                                            <th>商品</th>
+                                            <th>数量</th>
+                                            <th>单价</th>
+                                            <th>小计</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -324,7 +324,7 @@ export default function OrderEdit() {
                         <Row className="mt-4">
                             <Col>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Notes</Form.Label>
+                                    <Form.Label>备注</Form.Label>
                                     <Form.Control
                                         as="textarea"
                                         rows={3}
@@ -338,7 +338,7 @@ export default function OrderEdit() {
                         <Row className="mt-4">
                             <Col>
                                 <Button type="submit" variant="primary">
-                                    Save Changes
+                                    保存修改
                                 </Button>
                             </Col>
                         </Row>

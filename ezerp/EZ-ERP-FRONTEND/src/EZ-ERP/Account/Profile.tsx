@@ -22,10 +22,10 @@ export default function Profile() {
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
-        email: ''
-        /*         phone: '',
-                department: '',
-                position: '' */
+        email: '',
+        phone: '',
+        department: '',
+        role: ''
     });
 
     const [isEditing, setIsEditing] = useState(false);
@@ -37,10 +37,10 @@ export default function Profile() {
             setFormData({
                 firstName: currentUser.firstName || '',
                 lastName: currentUser.lastName || '',
-                email: currentUser.email || ''
-                /*                 phone: currentUser.phone || '',
-                                department: currentUser.department || '',
-                                position: currentUser.position || '' */
+                email: currentUser.email || '',
+                phone: currentUser.phone || '',
+                department: currentUser.department || '',
+                role: currentUser.role || ''
             });
         }
     }, [currentUser]);
@@ -99,12 +99,12 @@ export default function Profile() {
     };
 
     if (!currentUser) {
-        return <Alert variant="warning">Please log in to view your profile.</Alert>;
+        return <Alert variant="warning">请登录后查看个人信息。</Alert>;
     }
 
     return (
         <div className="profile-container">
-            <h2 className="mb-4">Your Profile</h2>
+            <h2 className="mb-4">个人信息</h2>
 
             <div style={{
                 backgroundColor: '#f8f9fa',
@@ -118,7 +118,7 @@ export default function Profile() {
                     fontWeight: 'bold',
                     marginRight: '10px',
                     color: '#6c757d'
-                }}>Role:</span>
+                }}>角色:</span>
                 <span style={{
                     color: '#0d6efd',
                     fontWeight: '500'
@@ -137,7 +137,7 @@ export default function Profile() {
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>First Name</Form.Label>
+                                    <Form.Label>名</Form.Label>
                                     <Form.Control
                                         type="text"
                                         name="firstName"
@@ -149,7 +149,7 @@ export default function Profile() {
                             </Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Last Name</Form.Label>
+                                    <Form.Label>姓</Form.Label>
                                     <Form.Control
                                         type="text"
                                         name="lastName"
@@ -164,7 +164,7 @@ export default function Profile() {
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Email</Form.Label>
+                                    <Form.Label>邮箱</Form.Label>
                                     <Form.Control
                                         type="email"
                                         name="email"
@@ -175,9 +175,9 @@ export default function Profile() {
                                 </Form.Group>
                             </Col>
 
-                            {/*                             <Col md={6}>
+                            {/* <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Phone</Form.Label>
+                                    <Form.Label>电话</Form.Label>
                                     <Form.Control
                                         type="text"
                                         name="phone"
@@ -193,22 +193,22 @@ export default function Profile() {
                             {isEditing ? (
                                 <>
                                     <Button variant="secondary" className="me-2" onClick={() => setIsEditing(false)}>
-                                        Cancel
+                                        取消
                                     </Button>
                                     <Button variant="primary" type="submit" disabled={isLoading}>
                                         {isLoading ? (
                                             <>
                                                 <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
-                                                <span className="ms-2">Saving...</span>
+                                                <span className="ms-2">保存...</span>
                                             </>
                                         ) : (
-                                            "Save Changes"
+                                            "保存更改"
                                         )}
                                     </Button>
                                 </>
                             ) : (
                                 <Button variant="primary" onClick={() => setIsEditing(true)}>
-                                    Edit Profile
+                                    编辑个人信息
                                 </Button>
                             )}
                         </div>

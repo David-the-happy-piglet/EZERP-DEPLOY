@@ -10,7 +10,7 @@ export default function Account() {
         <div className="h-100">
             <Card className="h-100">
                 <Card.Header>
-                    <h2 className="mb-0">Account Settings</h2>
+                    <h2 className="mb-0">账户设置</h2>
                 </Card.Header>
                 <Card.Body className="overflow-auto">
                     <Row className="h-100">
@@ -21,7 +21,7 @@ export default function Account() {
                                     onClick={() => setActiveTab('profile')}
                                     className="account-nav-link"
                                 >
-                                    Profile
+                                    个人信息
                                 </Nav.Link>
 
                                 <Nav.Link
@@ -29,7 +29,7 @@ export default function Account() {
                                     onClick={() => setActiveTab('password')}
                                     className="account-nav-link"
                                 >
-                                    Change Password
+                                    修改密码
                                 </Nav.Link>
                             </Nav>
                         </Col>

@@ -66,8 +66,10 @@ export default function Overview() {
 
     useEffect(() => {
         fetchUserTasks();
-        fetchMessages();
-    }, []);
+        if (currentUser && currentUser.username) {
+            fetchMessages();
+        }
+    }, [currentUser]);
 
     useEffect(() => {
         if (tasks.length > 0) {
@@ -224,11 +226,11 @@ export default function Overview() {
     const getPriorityBadge = (priority: string) => {
         switch (priority) {
             case 'low':
-                return <Badge bg="info">Low</Badge>;
+                return <Badge bg="info">低</Badge>;
             case 'medium':
-                return <Badge bg="warning">Medium</Badge>;
+                return <Badge bg="warning">中</Badge>;
             case 'high':
-                return <Badge bg="danger">High</Badge>;
+                return <Badge bg="danger">高</Badge>;
             default:
                 return <Badge bg="secondary">{priority}</Badge>;
         }
@@ -237,9 +239,9 @@ export default function Overview() {
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'pending':
-                return <Badge bg="warning">Pending</Badge>;
+                return <Badge bg="warning">待办</Badge>;
             case 'in progress':
-                return <Badge bg="primary">In Progress</Badge>;
+                return <Badge bg="primary">进行中</Badge>;
             default:
                 return <Badge bg="secondary">{status}</Badge>;
         }
@@ -264,16 +266,16 @@ export default function Overview() {
         );
 
         if (activeTasks.length === 0) {
-            return <div className="alert alert-info">You have no pending tasks.</div>;
+            return <div className="alert alert-info">您没有待办任务。</div>;
         }
 
         return (
             <Table striped bordered hover responsive>
                 <thead>
                     <tr>
-                        <th>Title</th>
-                        <th>From</th>
-                        <th>Status</th>
+                        <th>标题</th>
+                        <th>来自</th>
+                        <th>状态</th>
                         <th
                             onClick={() => handleSort('priority')}
                             style={{ cursor: 'pointer' }}
@@ -297,7 +299,7 @@ export default function Overview() {
                                 {task.orderRelated && task.orderNumber && (
                                     <div>
                                         <Badge bg="secondary" className="mt-1">
-                                            Order: {task.orderNumber}
+                                            订单: {task.orderNumber}
                                         </Badge>
                                     </div>
                                 )}
@@ -313,7 +315,7 @@ export default function Overview() {
                                     className="me-1"
                                     onClick={() => handleViewTaskDetails(task)}
                                 >
-                                    Details
+                                    查看详情
                                 </Button>
                                 {task.status === 'pending' ? (
                                     <Button
@@ -321,7 +323,7 @@ export default function Overview() {
                                         size="sm"
                                         onClick={() => handleStartTask(task)}
                                     >
-                                        Start
+                                        开始任务
                                     </Button>
                                 ) : task.status === 'in progress' ? (
                                     <Button
@@ -329,7 +331,7 @@ export default function Overview() {
                                         size="sm"
                                         onClick={() => handleMarkComplete(task)}
                                     >
-                                        Complete
+                                        完成任务
                                     </Button>
                                 ) : null}
                             </td>
@@ -353,8 +355,8 @@ export default function Overview() {
             setMessages(sortedMessages.slice(0, 10)); // Get the 10 most recent messages
             setMessagesLoading(false);
         } catch (err: any) {
-            console.error('Failed to fetch messages:', err);
-            setMessagesError('Failed to load messages');
+            console.error('加载消息失败:', err);
+            setMessagesError('加载消息失败');
             setMessagesLoading(false);
         }
     };
@@ -370,16 +372,16 @@ export default function Overview() {
     const getMessageTypeBadge = (type: string) => {
         switch (type) {
             case 'new order':
-                return <Badge bg="success">New Order</Badge>;
+                return <Badge bg="success">新订单</Badge>;
             case 'order status change':
-                return <Badge bg="info">Status Change</Badge>;
+                return <Badge bg="info">订单状态变更</Badge>;
             case 'order update':
-                return <Badge bg="warning">Update</Badge>;
+                return <Badge bg="warning">订单更新</Badge>;
             case 'task started':
             case 'task completed':
-                return <Badge bg="primary">Tasks</Badge>;
+                return <Badge bg="primary">任务</Badge>;
             case 'others':
-                return <Badge bg="secondary">Info</Badge>;
+                return <Badge bg="secondary">信息</Badge>;
             default:
                 return <Badge bg="secondary">{type}</Badge>;
         }
@@ -400,7 +402,7 @@ export default function Overview() {
         }
 
         if (messages.length === 0) {
-            return <div className="alert alert-info">No messages found.</div>;
+            return <div className="alert alert-info">没有找到消息。</div>;
         }
 
         return (
@@ -418,7 +420,7 @@ export default function Overview() {
                                     <span className="ms-2">{message.messageTitle}</span>
                                 </div>
                                 <p className="text-muted mb-1 small">
-                                    From: {message.postedBy} · {formatDate(message.postDate)}
+                                    来自: {message.postedBy} · {formatDate(message.postDate)}
                                 </p>
                                 <p className="mb-0">{message.messageContent}</p>
                             </div>
@@ -428,7 +430,7 @@ export default function Overview() {
                                     pill
                                     className="mt-1"
                                 >
-                                    Order: {message.orderNumber}
+                                    订单: {message.orderNumber}
                                 </Badge>
                             )}
                         </div>
@@ -444,7 +446,7 @@ export default function Overview() {
 
             <Card className="mt-4">
                 <Card.Header className="d-flex justify-content-between align-items-center">
-                    <h3>My Tasks</h3>
+                    <h3>我的任务</h3>
                     <div>
                         <Form.Select
                             size="sm"
@@ -457,17 +459,17 @@ export default function Overview() {
                             style={{ width: 'auto', display: 'inline-block' }}
                             className="me-2"
                         >
-                            <option value="dueDate-asc">Due Date (earliest first)</option>
-                            <option value="dueDate-desc">Due Date (latest first)</option>
-                            <option value="priority-desc">Priority (highest first)</option>
-                            <option value="priority-asc">Priority (lowest first)</option>
+                            <option value="dueDate-asc">截止日期 (最早优先)</option>
+                            <option value="dueDate-desc">截止日期 (最新优先)</option>
+                            <option value="priority-desc">优先级 (最高优先级)</option>
+                            <option value="priority-asc">优先级 (最低优先级)</option>
                         </Form.Select>
                         <Button
                             variant="outline-secondary"
                             size="sm"
                             onClick={fetchUserTasks}
                         >
-                            Refresh
+                            刷新
                         </Button>
                     </div>
                 </Card.Header>
@@ -476,52 +478,54 @@ export default function Overview() {
                 </Card.Body>
             </Card>
 
-            <div className="mt-4">
-                <Card>
-                    <Card.Header className="d-flex justify-content-between align-items-center">
-                        <h3>Recent Messages</h3>
-                        <Button
-                            variant="outline-secondary"
-                            size="sm"
-                            onClick={fetchMessages}
-                        >
-                            Refresh
-                        </Button>
-                    </Card.Header>
-                    <Card.Body>
-                        {renderMessages()}
-                    </Card.Body>
-                </Card>
-            </div>
+            {currentUser && (
+                <div className="mt-4">
+                    <Card>
+                        <Card.Header className="d-flex justify-content-between align-items-center">
+                            <h3>最近消息</h3>
+                            <Button
+                                variant="outline-secondary"
+                                size="sm"
+                                onClick={fetchMessages}
+                            >
+                                刷新
+                            </Button>
+                        </Card.Header>
+                        <Card.Body>
+                            {renderMessages()}
+                        </Card.Body>
+                    </Card>
+                </div>
+            )}
 
             {/* Task Start Modal */}
             <Modal show={showStartModal} onHide={() => setShowStartModal(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Start Task: {selectedTask?.title}</Modal.Title>
+                    <Modal.Title>开始任务: {selectedTask?.title}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form>
                         <Form.Group className="mb-3">
-                            <Form.Label>Message</Form.Label>
+                            <Form.Label>开始消息</Form.Label>
                             <Form.Control
                                 as="textarea"
                                 rows={3}
-                                placeholder="Add a message about starting this task..."
+                                placeholder="请输入开始消息..."
                                 value={messageContent}
                                 onChange={(e) => setMessageContent(e.target.value)}
                             />
                             <Form.Text className="text-muted">
-                                Your message will be visible to others in the system.
+                                您的消息将在系统中对其他人可见。
                             </Form.Text>
                         </Form.Group>
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowStartModal(false)}>
-                        Cancel
+                        取消
                     </Button>
                     <Button variant="primary" onClick={handleSubmitStart}>
-                        Start Task
+                        开始任务
                     </Button>
                 </Modal.Footer>
             </Modal>
@@ -529,31 +533,31 @@ export default function Overview() {
             {/* Completion Modal */}
             <Modal show={showCompleteModal} onHide={() => setShowCompleteModal(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Complete Task: {selectedTask?.title}</Modal.Title>
+                    <Modal.Title>完成任务: {selectedTask?.title}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form>
                         <Form.Group className="mb-3">
-                            <Form.Label>Completion Message</Form.Label>
+                            <Form.Label>完成消息</Form.Label>
                             <Form.Control
                                 as="textarea"
                                 rows={3}
-                                placeholder="Add a message about completing this task..."
+                                placeholder="请输入完成消息..."
                                 value={completionMessage}
                                 onChange={(e) => setCompletionMessage(e.target.value)}
                             />
                             <Form.Text className="text-muted">
-                                Your message will be visible to others in the system.
+                                您的消息将在系统中对其他人可见。
                             </Form.Text>
                         </Form.Group>
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowCompleteModal(false)}>
-                        Cancel
+                        取消
                     </Button>
                     <Button variant="success" onClick={handleSubmitCompletion}>
-                        Mark as Completed
+                        标记为完成
                     </Button>
                 </Modal.Footer>
             </Modal>

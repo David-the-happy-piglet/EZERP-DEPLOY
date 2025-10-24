@@ -337,11 +337,11 @@ export default function ProjectManagement() {
     const getPriorityBadge = (priority: string) => {
         switch (priority) {
             case 'low':
-                return <Badge bg="info">Low</Badge>;
+                return <Badge bg="info">低</Badge>;
             case 'medium':
-                return <Badge bg="warning">Medium</Badge>;
+                return <Badge bg="warning">中</Badge>;
             case 'high':
-                return <Badge bg="danger">High</Badge>;
+                return <Badge bg="danger">高</Badge>;
             default:
                 return <Badge bg="secondary">{priority}</Badge>;
         }
@@ -384,23 +384,23 @@ export default function ProjectManagement() {
 
             <Card className="mt-4">
                 <Card.Header>
-                    <h3>Active Orders</h3>
+                    <h3>进行中的订单</h3>
                 </Card.Header>
                 <Card.Body>
                     <Table striped bordered hover responsive>
                         <thead>
                             <tr>
-                                <th>Order Number</th>
-                                <th>Due Date</th>
-                                <th>Status</th>
-                                <th>Customer</th>
-                                <th>Actions</th>
+                                <th>订单号</th>
+                                <th>截止日期</th>
+                                <th>状态</th>
+                                <th>客户</th>
+                                <th>操作</th>
                             </tr>
                         </thead>
                         <tbody>
                             {orders.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="text-center">No active orders found</td>
+                                    <td colSpan={5} className="text-center">没有进行中的订单</td>
                                 </tr>
                             ) : (
                                 orders.map(order => (
@@ -413,11 +413,11 @@ export default function ProjectManagement() {
                                                     value={order.status}
                                                     onChange={(e) => handleStatusChange(order._id, e.target.value)}
                                                 >
-                                                    <option value="PENDING">Pending</option>
-                                                    <option value="PROCESSING">Processing</option>
-                                                    <option value="SHIPPED">Shipped</option>
-                                                    <option value="DELIVERED">Delivered</option>
-                                                    <option value="CANCELLED">Cancelled</option>
+                                                    <option value="PENDING">待处理</option>
+                                                    <option value="PROCESSING">处理中</option>
+                                                    <option value="SHIPPED">已发货</option>
+                                                    <option value="DELIVERED">已交付</option>
+                                                    <option value="CANCELLED">已取消</option>
                                                 </Form.Select>
                                             ) : (
                                                 order.status
@@ -431,14 +431,14 @@ export default function ProjectManagement() {
                                                 className="me-2"
                                                 onClick={() => handleOrderClick(order.orderNumber)}
                                             >
-                                                View Details
+                                                查看详情
                                             </Button>
                                             <Button
                                                 variant="info"
                                                 size="sm"
                                                 onClick={() => handleTasksClick(order.orderNumber)}
                                             >
-                                                Tasks
+                                                任务
                                             </Button>
                                         </td>
                                     </tr>
@@ -452,7 +452,7 @@ export default function ProjectManagement() {
             {/* Active Tasks Table */}
             <Card className="mt-4">
                 <Card.Header>
-                    <h3>Active Tasks</h3>
+                    <h3>进行中的任务</h3>
                 </Card.Header>
                 <Card.Body>
                     {taskError && <Alert variant="danger">{taskError}</Alert>}
@@ -461,12 +461,12 @@ export default function ProjectManagement() {
                     <Row className="mb-3">
                         <Col md={2}>
                             <Form.Group>
-                                <Form.Label>From</Form.Label>
+                                <Form.Label>来自</Form.Label>
                                 <Form.Select
                                     value={fromFilter}
                                     onChange={(e) => setFromFilter(e.target.value)}
                                 >
-                                    <option value="">All</option>
+                                    <option value="">全部</option>
                                     {getUniqueAssigners().map(assigner => (
                                         <option key={assigner} value={assigner}>{assigner}</option>
                                     ))}
@@ -475,12 +475,12 @@ export default function ProjectManagement() {
                         </Col>
                         <Col md={2}>
                             <Form.Group>
-                                <Form.Label>To</Form.Label>
+                                <Form.Label>指派给</Form.Label>
                                 <Form.Select
                                     value={toFilter}
                                     onChange={(e) => setToFilter(e.target.value)}
                                 >
-                                    <option value="">All</option>
+                                    <option value="">全部</option>
                                     {getUniqueAssignees().map(assignee => (
                                         <option key={assignee} value={assignee}>{assignee}</option>
                                     ))}
@@ -489,28 +489,28 @@ export default function ProjectManagement() {
                         </Col>
                         <Col md={2}>
                             <Form.Group>
-                                <Form.Label>Priority</Form.Label>
+                                <Form.Label>优先级</Form.Label>
                                 <Form.Select
                                     value={priorityFilter}
                                     onChange={(e) => setPriorityFilter(e.target.value)}
                                 >
-                                    <option value="">All</option>
-                                    <option value="low">Low</option>
-                                    <option value="medium">Medium</option>
-                                    <option value="high">High</option>
+                                    <option value="">全部</option>
+                                    <option value="low">低</option>
+                                    <option value="medium">中</option>
+                                    <option value="high">高</option>
                                 </Form.Select>
                             </Form.Group>
                         </Col>
                         <Col md={2}>
                             <Form.Group>
-                                <Form.Label>Status</Form.Label>
+                                <Form.Label>状态</Form.Label>
                                 <Form.Select
                                     value={statusFilter}
                                     onChange={(e) => setStatusFilter(e.target.value)}
                                 >
-                                    <option value="">All</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="in progress">In Progress</option>
+                                    <option value="">全部</option>
+                                    <option value="pending">待办</option>
+                                    <option value="in progress">进行中</option>
                                 </Form.Select>
                             </Form.Group>
                         </Col>
@@ -520,44 +520,44 @@ export default function ProjectManagement() {
                                 onClick={clearFilters}
                                 className="me-2"
                             >
-                                Clear Filters
+                                清空筛选
                             </Button>
                             {isAdmin && (
                                 <Button
                                     variant="primary"
                                     onClick={handleCreateTask}
                                 >
-                                    Create Task
+                                    创建任务
                                 </Button>
                             )}
                         </Col>
                     </Row>
 
                     {taskLoading ? (
-                        <div className="text-center">Loading tasks...</div>
+                        <div className="text-center">加载任务...</div>
                     ) : (
                         <Table striped bordered hover responsive>
                             <thead>
                                 <tr>
-                                    <th style={{ width: '40px' }}>OR</th>
-                                    <th>Title</th>
-                                    <th>From</th>
-                                    <th>To</th>
+                                    <th style={{ width: '40px' }}>OS</th>
+                                    <th>标题</th>
+                                    <th>来自</th>
+                                    <th>指派给</th>
                                     <th
                                         onClick={() => handleSort('postDate')}
                                         style={{ cursor: 'pointer' }}
                                     >
-                                        Created{getSortIcon('postDate')}
+                                        创建时间{getSortIcon('postDate')}
                                     </th>
                                     <th
                                         onClick={() => handleSort('dueDate')}
                                         style={{ cursor: 'pointer' }}
                                     >
-                                        Due Date{getSortIcon('dueDate')}
+                                        截止日期{getSortIcon('dueDate')}
                                     </th>
-                                    <th>Priority</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
+                                    <th>优先级</th>
+                                    <th>状态</th>
+                                    <th>操作</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -595,7 +595,7 @@ export default function ProjectManagement() {
                                                     className="me-1"
                                                     onClick={() => handleViewTaskDetails(task._id)}
                                                 >
-                                                    Details
+                                                    查看详情
                                                 </Button>
                                                 {isAdmin && (
                                                     <>
@@ -605,14 +605,14 @@ export default function ProjectManagement() {
                                                             className="me-1"
                                                             onClick={() => handleEditTask(task)}
                                                         >
-                                                            Edit
+                                                            编辑
                                                         </Button>
                                                         <Button
                                                             variant="outline-danger"
                                                             size="sm"
                                                             onClick={() => handleDeleteTaskPrompt(task)}
                                                         >
-                                                            Delete
+                                                            删除
                                                         </Button>
                                                     </>
                                                 )}
@@ -634,22 +634,22 @@ export default function ProjectManagement() {
                 <Modal.Body>
                     {selectedTask && (
                         <>
-                            <h5>Description</h5>
+                            <h5>描述</h5>
                             <p>{selectedTask.description}</p>
 
-                            <h5>Details</h5>
-                            <p><strong>Assigned By:</strong> {selectedTask.assignedBy}</p>
-                            <p><strong>Assigned To:</strong> {selectedTask.assignedTo}</p>
-                            <p><strong>Post Date:</strong> {new Date(selectedTask.postDate).toLocaleString()}</p>
-                            <p><strong>Due Date:</strong> {new Date(selectedTask.dueDate).toLocaleString()}</p>
-                            <p><strong>Status:</strong> {getStatusBadge(selectedTask.status)}</p>
-                            <p><strong>Priority:</strong> {getPriorityBadge(selectedTask.priority)}</p>
+                            <h5>详情</h5>
+                            <p><strong>来自:</strong> {selectedTask.assignedBy}</p>
+                            <p><strong>指派给:</strong> {selectedTask.assignedTo}</p>
+                            <p><strong>创建时间:</strong> {new Date(selectedTask.postDate).toLocaleString()}</p>
+                            <p><strong>截止日期:</strong> {new Date(selectedTask.dueDate).toLocaleString()}</p>
+                            <p><strong>状态:</strong> {getStatusBadge(selectedTask.status)}</p>
+                            <p><strong>优先级:</strong> {getPriorityBadge(selectedTask.priority)}</p>
                         </>
                     )}
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowTaskModal(false)}>
-                        Close
+                        关闭
                     </Button>
                 </Modal.Footer>
             </Modal>
@@ -657,12 +657,12 @@ export default function ProjectManagement() {
             {/* Create Task Modal */}
             <Modal show={showCreateModal} onHide={() => setShowCreateModal(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>{isEditing ? 'Edit Task' : 'Create New Task'}</Modal.Title>
+                    <Modal.Title>{isEditing ? '编辑任务' : '创建新任务'}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form>
                         <Form.Group className="mb-3">
-                            <Form.Label>Title*</Form.Label>
+                            <Form.Label>标题*</Form.Label>
                             <Form.Control
                                 type="text"
                                 name="title"
@@ -673,7 +673,7 @@ export default function ProjectManagement() {
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Description*</Form.Label>
+                            <Form.Label>描述*</Form.Label>
                             <Form.Control
                                 as="textarea"
                                 rows={3}
@@ -685,14 +685,14 @@ export default function ProjectManagement() {
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Assign To*</Form.Label>
+                            <Form.Label>指派给*</Form.Label>
                             <Form.Select
                                 name="assignedTo"
                                 value={formData.assignedTo || ''}
                                 onChange={handleFormChange}
                                 required
                             >
-                                <option value="">Select User</option>
+                                <option value="">选择用户</option>
                                 {users && users.length > 0 ? (
                                     users.map(user => (
                                         <option key={user._id} value={user.username}>
@@ -700,13 +700,13 @@ export default function ProjectManagement() {
                                         </option>
                                     ))
                                 ) : (
-                                    <option value="" disabled>Loading users...</option>
+                                    <option value="" disabled>加载用户...</option>
                                 )}
                             </Form.Select>
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Due Date*</Form.Label>
+                            <Form.Label>截止日期*</Form.Label>
                             <Form.Control
                                 type="date"
                                 name="dueDate"
@@ -717,37 +717,37 @@ export default function ProjectManagement() {
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Priority</Form.Label>
+                            <Form.Label>优先级</Form.Label>
                             <Form.Select
                                 name="priority"
                                 value={formData.priority || 'medium'}
                                 onChange={handleFormChange}
                             >
-                                <option value="low">Low</option>
-                                <option value="medium">Medium</option>
-                                <option value="high">High</option>
+                                <option value="low">低</option>
+                                <option value="medium">中</option>
+                                <option value="high">高</option>
                             </Form.Select>
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Status</Form.Label>
+                            <Form.Label>状态</Form.Label>
                             <Form.Select
                                 name="status"
                                 value={formData.status || 'pending'}
                                 onChange={handleFormChange}
                             >
-                                <option value="pending">Pending</option>
-                                <option value="in progress">In Progress</option>
+                                <option value="pending">待办</option>
+                                <option value="in progress">进行中</option>
                             </Form.Select>
                         </Form.Group>
                     </Form>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowCreateModal(false)}>
-                        Cancel
+                        取消
                     </Button>
                     <Button variant="primary" onClick={handleSubmitTask}>
-                        {isEditing ? 'Save Changes' : 'Create Task'}
+                        {isEditing ? '保存更改' : '创建任务'}
                     </Button>
                 </Modal.Footer>
             </Modal>
@@ -755,18 +755,18 @@ export default function ProjectManagement() {
             {/* Delete Confirmation Modal */}
             <Modal show={showDeleteConfirm} onHide={() => setShowDeleteConfirm(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Confirm Delete</Modal.Title>
+                    <Modal.Title>确认删除</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    Are you sure you want to delete the task "{taskToDelete?.title}"?
-                    <p className="text-danger mt-2">This action cannot be undone.</p>
+                    确定要删除任务 "{taskToDelete?.title}"?
+                    <p className="text-danger mt-2">此操作无法撤销。</p>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowDeleteConfirm(false)}>
-                        Cancel
+                        取消
                     </Button>
                     <Button variant="danger" onClick={handleConfirmDelete}>
-                        Delete
+                        删除
                     </Button>
                 </Modal.Footer>
             </Modal>

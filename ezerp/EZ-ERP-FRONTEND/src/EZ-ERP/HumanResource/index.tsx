@@ -4,14 +4,14 @@ import { useSelector } from 'react-redux';
 import { authService } from '../services/api';
 
 export enum UserRole {
-    ADMIN = 'ADMIN',
-    MKT = 'MKT',
-    MACHINING = 'MACHINING',
-    QC = 'QC',
-    CHEMIST = 'CHEMIST',
-    FINANCE = 'FINANCE',
-    HR = 'HR',
-    GUEST = 'GUEST'
+    ADMIN = '管理员',
+    MKT = '营销',
+    MACHINING = '机加工',
+    QC = '质检',
+    CHEMIST = '镀金',
+    FINANCE = '财务',
+    HR = '人力资源',
+    GUEST = '访客'
 }
 
 interface User {
@@ -175,7 +175,7 @@ export default function HumanResource() {
         <div className="h-100">
             <Card className="h-100">
                 <Card.Header>
-                    <h2 className="mb-0">User Management</h2>
+                    <h2 className="mb-0">用户管理</h2>
                 </Card.Header>
                 <Card.Body className="overflow-auto">
                     {error && <Alert variant="danger" className="mb-3">{error}</Alert>}
@@ -184,7 +184,7 @@ export default function HumanResource() {
                         <div className="d-flex gap-2">
                             <Form.Control
                                 type="text"
-                                placeholder="Search by username, name, email, or role..."
+                                placeholder="按用户名、姓名、邮箱或角色搜索..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 style={{ width: '300px' }}
@@ -195,19 +195,19 @@ export default function HumanResource() {
                                 style={{ width: '200px' }}
                             >
                                 <option value="ALL">All Roles</option>
-                                <option value={UserRole.ADMIN}>Admin</option>
-                                <option value={UserRole.MKT}>Marketing</option>
-                                <option value={UserRole.MACHINING}>Machining</option>
-                                <option value={UserRole.QC}>Quality Control</option>
-                                <option value={UserRole.CHEMIST}>Chemist</option>
-                                <option value={UserRole.FINANCE}>Finance</option>
-                                <option value={UserRole.HR}>Human Resources</option>
-                                <option value={UserRole.GUEST}>Guest</option>
+                                <option value={UserRole.ADMIN}>管理员</option>
+                                <option value={UserRole.MKT}>营销</option>
+                                <option value={UserRole.MACHINING}>机加工</option>
+                                <option value={UserRole.QC}>质检</option>
+                                <option value={UserRole.CHEMIST}>镀金</option>
+                                <option value={UserRole.FINANCE}>财务</option>
+                                <option value={UserRole.HR}>人力资源</option>
+                                <option value={UserRole.GUEST}>访客</option>
                             </Form.Select>
                         </div>
                         {canManageUsers && (
                             <Button variant="primary" onClick={() => handleShowModal()}>
-                                Add New User
+                                添加新用户
                             </Button>
                         )}
                     </div>
@@ -216,11 +216,11 @@ export default function HumanResource() {
                         <Table striped bordered hover>
                             <thead>
                                 <tr>
-                                    <th>Username</th>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    {canManageUsers && <th>Actions</th>}
+                                    <th>用户名</th>
+                                    <th>姓名</th>
+                                    <th>邮箱</th>
+                                    <th>角色</th>
+                                    {canManageUsers && <th>操作</th>}
                                 </tr>
                             </thead>
                             <tbody>
@@ -233,10 +233,10 @@ export default function HumanResource() {
                                         {canManageUsers && (
                                             <td>
                                                 <Button variant="info" size="sm" className="me-2" onClick={() => handleShowModal(user)}>
-                                                    Edit
+                                                    编辑
                                                 </Button>
                                                 <Button variant="danger" size="sm" onClick={() => handleDelete(user._id)}>
-                                                    Delete
+                                                    删除
                                                 </Button>
                                             </td>
                                         )}
@@ -250,14 +250,14 @@ export default function HumanResource() {
 
             <Modal show={showModal} onHide={handleCloseModal} size="lg">
                 <Modal.Header closeButton>
-                    <Modal.Title>{selectedUser ? 'Edit User' : 'Create New User'}</Modal.Title>
+                    <Modal.Title>{selectedUser ? '编辑用户' : '创建新用户'}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <Form onSubmit={handleSubmit}>
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Username</Form.Label>
+                                    <Form.Label>用户名</Form.Label>
                                     <Form.Control
                                         type="text"
                                         value={formData.username}
@@ -269,7 +269,7 @@ export default function HumanResource() {
                             </Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Password</Form.Label>
+                                    <Form.Label>密码</Form.Label>
                                     <Form.Control
                                         type="password"
                                         value={formData.password}
@@ -283,7 +283,7 @@ export default function HumanResource() {
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>First Name</Form.Label>
+                                    <Form.Label>名</Form.Label>
                                     <Form.Control
                                         type="text"
                                         value={formData.firstName}
@@ -294,7 +294,7 @@ export default function HumanResource() {
                             </Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Last Name</Form.Label>
+                                    <Form.Label>姓</Form.Label>
                                     <Form.Control
                                         type="text"
                                         value={formData.lastName}
@@ -308,7 +308,7 @@ export default function HumanResource() {
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Email</Form.Label>
+                                    <Form.Label>邮箱</Form.Label>
                                     <Form.Control
                                         type="email"
                                         value={formData.email}
@@ -319,20 +319,20 @@ export default function HumanResource() {
                             </Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Role</Form.Label>
+                                    <Form.Label>角色</Form.Label>
                                     <Form.Select
                                         value={formData.role}
                                         onChange={(e) => setFormData({ ...formData, role: e.target.value as UserRole })}
                                         required
                                     >
-                                        <option value={UserRole.ADMIN}>Admin</option>
-                                        <option value={UserRole.MKT}>Marketing</option>
-                                        <option value={UserRole.MACHINING}>Machining</option>
-                                        <option value={UserRole.QC}>Quality Control</option>
-                                        <option value={UserRole.CHEMIST}>Chemist</option>
-                                        <option value={UserRole.FINANCE}>Finance</option>
-                                        <option value={UserRole.HR}>Human Resources</option>
-                                        <option value={UserRole.GUEST}>Guest</option>
+                                        <option value={UserRole.ADMIN}>管理员</option>
+                                        <option value={UserRole.MKT}>营销</option>
+                                        <option value={UserRole.MACHINING}>机加工</option>
+                                        <option value={UserRole.QC}>质检</option>
+                                        <option value={UserRole.CHEMIST}>镀金</option>
+                                        <option value={UserRole.FINANCE}>财务</option>
+                                        <option value={UserRole.HR}>人力资源</option>
+                                        <option value={UserRole.GUEST}>访客</option>
                                     </Form.Select>
                                 </Form.Group>
                             </Col>
@@ -342,7 +342,7 @@ export default function HumanResource() {
                             <Row>
                                 <Col md={6}>
                                     <Form.Group className="mb-3">
-                                        <Form.Label>Date of Birth</Form.Label>
+                                        <Form.Label>出生日期</Form.Label>
                                         <Form.Control
                                             type="date"
                                             value={formData.dob}
@@ -356,10 +356,10 @@ export default function HumanResource() {
 
                         <div className="d-flex justify-content-end">
                             <Button variant="secondary" className="me-2" onClick={handleCloseModal}>
-                                Cancel
+                                取消
                             </Button>
                             <Button variant="primary" type="submit">
-                                {selectedUser ? 'Update' : 'Create'}
+                                {selectedUser ? '更新' : '创建'}
                             </Button>
                         </div>
                     </Form>

@@ -67,7 +67,7 @@ export default function OrderCreate() {
             const newNumber = `ORD-${currentYear}-${String(newSequence).padStart(3, '0')}`;
             setFormData(prev => ({ ...prev, orderNumber: newNumber }));
         } catch (err: any) {
-            setError('Failed to generate order number');
+            setError('生成订单号失败');
         }
     };
 
@@ -78,7 +78,7 @@ export default function OrderCreate() {
             setFilteredCustomers(response.data as Customer[]);
             setLoading(false);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to fetch customers');
+            setError(err.response?.data?.message || '获取客户列表失败');
             setLoading(false);
         }
     };
@@ -86,7 +86,7 @@ export default function OrderCreate() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.orderNumber || !formData.customer || !formData.items || formData.items.length === 0 || !formData.dueDate || !formData.shippingAddress) {
-            setError('Please fill in all required fields and add at least one item');
+            setError('请填写所有必填项并至少添加一件商品');
             return;
         }
         try {
@@ -104,7 +104,7 @@ export default function OrderCreate() {
             await orderService.create(orderData);
             navigate('/EZERP/Orders');
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to create order');
+            setError(err.response?.data?.message || '创建订单失败');
         }
     };
 
@@ -145,7 +145,7 @@ export default function OrderCreate() {
 
     const handleAddItem = () => {
         if (!newItem.productName || newItem.quantity <= 0 || newItem.price < 0) {
-            setError('Please fill in all item fields with valid values');
+            setError('请完整填写商品信息并确保数值有效');
             return;
         }
 
@@ -185,15 +185,15 @@ export default function OrderCreate() {
     };
 
     if (loading) {
-        return <div className="container mt-4">Loading...</div>;
+        return <div className="container mt-4">加载中...</div>;
     }
 
     return (
         <div className="container mt-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <h2>Create New Order</h2>
+                <h2>新建订单</h2>
                 <Button variant="secondary" onClick={() => navigate('/EZERP/Orders')}>
-                    Back to Orders
+                    返回订单列表
                 </Button>
             </div>
 
@@ -205,7 +205,7 @@ export default function OrderCreate() {
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Order Number</Form.Label>
+                                    <Form.Label>订单号</Form.Label>
                                     <Form.Control
                                         type="text"
                                         value={formData.orderNumber}
@@ -215,7 +215,7 @@ export default function OrderCreate() {
                             </Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Due Date</Form.Label>
+                                    <Form.Label>交付日期</Form.Label>
                                     <Form.Control
                                         type="date"
                                         value={formData.dueDate}
@@ -229,37 +229,37 @@ export default function OrderCreate() {
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Status</Form.Label>
+                                    <Form.Label>状态</Form.Label>
                                     <Form.Select
                                         value={formData.status}
                                         onChange={(e) => setFormData({ ...formData, status: e.target.value as Order['status'] })}
                                     >
-                                        <option value="PENDING">Pending</option>
-                                        <option value="PROCESSING">Processing</option>
-                                        <option value="SHIPPED">Shipped</option>
-                                        <option value="DELIVERED">Delivered</option>
-                                        <option value="CANCELLED">Cancelled</option>
+                                        <option value="PENDING">待处理</option>
+                                        <option value="PROCESSING">处理中</option>
+                                        <option value="SHIPPED">已发货</option>
+                                        <option value="DELIVERED">已送达</option>
+                                        <option value="CANCELLED">已取消</option>
                                     </Form.Select>
                                 </Form.Group>
                             </Col>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Payment Status</Form.Label>
+                                    <Form.Label>付款状态</Form.Label>
                                     <Form.Select
                                         value={formData.paymentStatus}
                                         onChange={(e) => setFormData({ ...formData, paymentStatus: e.target.value as Order['paymentStatus'] })}
                                     >
-                                        <option value="PENDING">Pending</option>
-                                        <option value="PAID">Paid</option>
-                                        <option value="FAILED">Failed</option>
-                                        <option value="REFUNDED">Refunded</option>
+                                        <option value="PENDING">待支付</option>
+                                        <option value="PAID">已支付</option>
+                                        <option value="FAILED">失败</option>
+                                        <option value="REFUNDED">已退款</option>
                                     </Form.Select>
                                 </Form.Group>
                             </Col>
                         </Row>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Description</Form.Label>
+                            <Form.Label>描述</Form.Label>
                             <Form.Control
                                 as="textarea"
                                 rows={3}
@@ -270,10 +270,10 @@ export default function OrderCreate() {
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Customer</Form.Label>
+                            <Form.Label>客户</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Search customers..."
+                                placeholder="搜索客户..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
@@ -282,7 +282,7 @@ export default function OrderCreate() {
                                 onChange={(e) => handleCustomerSelect(e.target.value)}
                                 required
                             >
-                                <option value="">Select a customer</option>
+                                <option value="">选择客户</option>
                                 {filteredCustomers.map(customer => (
                                     <option key={customer._id} value={customer._id}>
                                         {customer.companyName}
@@ -291,11 +291,11 @@ export default function OrderCreate() {
                             </Form.Select>
                         </Form.Group>
 
-                        <h4 className="mt-4">Items</h4>
+                        <h4 className="mt-4">商品明细</h4>
                         <Row>
                             <Col md={4}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Product Name</Form.Label>
+                                    <Form.Label>商品名称</Form.Label>
                                     <Form.Control
                                         type="text"
                                         value={newItem.productName}
@@ -305,7 +305,7 @@ export default function OrderCreate() {
                             </Col>
                             <Col md={2}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Quantity</Form.Label>
+                                    <Form.Label>数量</Form.Label>
                                     <Form.Control
                                         type="number"
                                         min="1"
@@ -316,7 +316,7 @@ export default function OrderCreate() {
                             </Col>
                             <Col md={2}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Price</Form.Label>
+                                    <Form.Label>单价</Form.Label>
                                     <Form.Control
                                         type="number"
                                         min="0"
@@ -328,7 +328,7 @@ export default function OrderCreate() {
                             </Col>
                             <Col md={4} className="d-flex align-items-end">
                                 <Button variant="primary" onClick={handleAddItem}>
-                                    Add Item
+                                    添加商品
                                 </Button>
                             </Col>
                         </Row>
@@ -337,11 +337,11 @@ export default function OrderCreate() {
                             <Table striped bordered hover className="mt-3">
                                 <thead>
                                     <tr>
-                                        <th>Product Name</th>
-                                        <th>Quantity</th>
-                                        <th>Price</th>
-                                        <th>Total</th>
-                                        <th>Action</th>
+                                        <th>商品名称</th>
+                                        <th>数量</th>
+                                        <th>单价</th>
+                                        <th>小计</th>
+                                        <th>操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -357,7 +357,7 @@ export default function OrderCreate() {
                                                     size="sm"
                                                     onClick={() => handleRemoveItem(index)}
                                                 >
-                                                    Remove
+                                                    移除
                                                 </Button>
                                             </td>
                                         </tr>
@@ -365,7 +365,7 @@ export default function OrderCreate() {
                                 </tbody>
                                 <tfoot>
                                     <tr>
-                                        <td colSpan={3} className="text-end"><strong>Total Amount:</strong></td>
+                                        <td colSpan={3} className="text-end"><strong>总金额：</strong></td>
                                         <td colSpan={2}><strong>${formData.totalAmount?.toFixed(2)}</strong></td>
                                     </tr>
                                 </tfoot>
@@ -374,7 +374,7 @@ export default function OrderCreate() {
 
                         <div className="d-flex justify-content-end mt-4">
                             <Button variant="primary" type="submit">
-                                Create Order
+                                创建订单
                             </Button>
                         </div>
                     </Form>

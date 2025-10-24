@@ -31,7 +31,7 @@ export default function Orders() {
         <div className="h-100">
             <Card className="h-100">
                 <Card.Header>
-                    <h2 className="mb-0">Orders</h2>
+                    <h2 className="mb-0">订单</h2>
                 </Card.Header>
                 <Card.Body className="overflow-auto">
                     <OrderTable

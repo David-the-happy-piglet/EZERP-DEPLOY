@@ -56,11 +56,14 @@ const startServer = async () => {
         // Respect reverse proxy settings (e.g., load balancer)
         const trustProxy = process.env.TRUST_PROXY === '1' || process.env.TRUST_PROXY === 'true';
         app.set('trust proxy', trustProxy ? 1 : false);
+        console.log(' trust proxy setting ->', app.get('trust proxy'));
 
         // ✅ 5. Use session AFTER MongoStore is ready
-        const isProd = process.env.NODE_ENV === 'production';
-        const cookieSecure = (process.env.COOKIE_SECURE === 'true') || isProd;
-        const cookieSameSite = process.env.COOKIE_SAMESITE || 'none';
+        const cookieSecureEnv = process.env.COOKIE_SECURE;
+        const cookieSecure = cookieSecureEnv === 'true' ? true : (cookieSecureEnv === 'false' ? false : 'auto');
+        // Default to lax for local/dev HTTP; allow override via env
+        const cookieSameSite = process.env.COOKIE_SAMESITE || 'lax';
+        console.log(' session cookie settings ->', { secure: cookieSecure, sameSite: cookieSameSite });
         app.use(session({
             secret: process.env.SESSION_SECRET || 'your-secret-key',
             resave: false,
@@ -88,6 +91,26 @@ const startServer = async () => {
         app.use('/api/messages', messageRoutes);
         app.use('/api/tasks', taskRoutes);
         app.use('/api/users', userRoutes);
+
+        // Debug endpoints (enable by setting DEBUG=true)
+        if (process.env.DEBUG === 'true') {
+            app.get('/api/debug/session', (req, res) => {
+                res.json({
+                    sessionID: req.sessionID,
+                    hasUser: Boolean(req.session && req.session.user),
+                    reqSecure: req.secure,
+                    trustProxy: app.get('trust proxy'),
+                    headers: {
+                        host: req.get('host'),
+                        forwardedProto: req.get('x-forwarded-proto')
+                    },
+                    cookieSettings: {
+                        secure: cookieSecure,
+                        sameSite: cookieSameSite
+                    }
+                });
+            });
+        }
 
         // ✅ 8. Start server
         const PORT = process.env.PORT || 3000;

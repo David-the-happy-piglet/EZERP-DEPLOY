@@ -22,13 +22,13 @@ export default function WelcomeBadge() {
         const hour = new Date().getHours();
         //console.log(hour)
         if (6 < hour && hour < 12) {
-            return "Good Morning";
+            return "早上好";
         } else if ((12 < hour || hour == 12) && hour < 18) {
-            return "Good Afternoon";
+            return "下午好";
         } else if ((18 < hour || hour == 18) && hour < 22) {
-            return "Good Evening";
+            return "晚上好";
         } else {
-            return "Good Night";
+            return "晚安";
         }
     };
 
@@ -85,11 +85,11 @@ export default function WelcomeBadge() {
                         onClick={openAnnouncementModal}
                         className="btn-sm btn-primary me-2"
                     >
-                        Make Announcement
+                        发布公告
                     </Button>
                 )}
                 <Button onClick={logout} id="ezerp-signout-btn" className="btn-sm btn-danger">
-                    Sign out
+                    登出
                 </Button>
             </div>
 
@@ -103,23 +103,23 @@ export default function WelcomeBadge() {
 
                     <Form>
                         <Form.Group className="mb-3">
-                            <Form.Label>Message Type</Form.Label>
+                            <Form.Label>公告类型</Form.Label>
                             <Form.Select
                                 value={messageType}
                                 onChange={(e) => setMessageType(e.target.value)}
                             >
-                                <option value="others">General Announcement</option>
-                                <option value="new order">Order Related</option>
-                                <option value="order status change">Status Change</option>
-                                <option value="order update">System Update</option>
+                                <option value="others">一般公告</option>
+                                <option value="new order">订单相关</option>
+                                <option value="order status change">订单状态变更</option>
+                                <option value="order update">系统更新</option>
                             </Form.Select>
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Announcement Title*</Form.Label>
+                            <Form.Label>公告标题*</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Enter title"
+                                placeholder="请输入标题"
                                 value={announcementTitle}
                                 onChange={(e) => setAnnouncementTitle(e.target.value)}
                                 required
@@ -127,11 +127,11 @@ export default function WelcomeBadge() {
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Announcement Content*</Form.Label>
+                            <Form.Label>公告内容*</Form.Label>
                             <Form.Control
                                 as="textarea"
                                 rows={4}
-                                placeholder="Enter your announcement message"
+                                placeholder="请输入公告内容"
                                 value={announcementContent}
                                 onChange={(e) => setAnnouncementContent(e.target.value)}
                                 required
@@ -141,14 +141,14 @@ export default function WelcomeBadge() {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowAnnouncementModal(false)}>
-                        Cancel
+                        取消
                     </Button>
                     <Button
                         variant="primary"
                         onClick={handleSubmitAnnouncement}
                         disabled={loading}
                     >
-                        {loading ? "Publishing..." : "Publish Announcement"}
+                        {loading ? "发布中..." : "发布公告"}
                     </Button>
                 </Modal.Footer>
             </Modal>

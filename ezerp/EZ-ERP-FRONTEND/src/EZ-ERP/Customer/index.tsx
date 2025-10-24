@@ -53,12 +53,12 @@ export default function Customer() {
                 setCustomers(response.data as Customer[]);
                 setFilteredCustomers(response.data as Customer[]);
             } else {
-                throw new Error('Invalid response format');
+                throw new Error('无效的响应格式');
             }
             setError(null);
         } catch (err) {
-            setError('Failed to fetch customers');
-            console.error('Error fetching customers:', err);
+            setError('获取客户失败');
+            console.error('获取客户失败:', err);
         } finally {
             setLoading(false);
         }
@@ -136,7 +136,7 @@ export default function Customer() {
         return (
             <div className="h-100 d-flex justify-content-center align-items-center">
                 <Spinner animation="border" role="status">
-                    <span className="visually-hidden">Loading customers...</span>
+                    <span className="visually-hidden">加载客户...</span>
                 </Spinner>
             </div>
         );
@@ -146,7 +146,7 @@ export default function Customer() {
         <div className="h-100">
             <Card className="h-100">
                 <Card.Header>
-                    <h2 className="mb-0">Customers</h2>
+                    <h2 className="mb-0">客户</h2>
                 </Card.Header>
                 <Card.Body className="overflow-auto">
                     {error && <Alert variant="danger">{error}</Alert>}
@@ -154,14 +154,14 @@ export default function Customer() {
                     <div className="d-flex justify-content-between align-items-center mb-3">
                         <Form.Control
                             type="text"
-                            placeholder="Search by company name or contact name..."
+                            placeholder="按公司名称或联系人名称搜索..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             style={{ width: '300px' }}
                         />
                         {canManageCustomers && (
                             <Button variant="primary" onClick={() => handleShowModal()}>
-                                Add New Customer
+                                添加新客户
                             </Button>
                         )}
                     </div>
@@ -171,9 +171,9 @@ export default function Customer() {
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Company Name</th>
-                                    <th>Contact Name</th>
-                                    <th>Actions</th>
+                                    <th>公司名称</th>
+                                    <th>联系人名称</th>
+                                    <th>操作</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -192,7 +192,7 @@ export default function Customer() {
                                                     setShowContactModal(true);
                                                 }}
                                             >
-                                                Contact Details
+                                                联系人详情
                                             </Button>
                                             {canManageCustomers && (
                                                 <>
@@ -202,14 +202,14 @@ export default function Customer() {
                                                         className="me-2"
                                                         onClick={() => handleShowModal(customer)}
                                                     >
-                                                        Edit
+                                                        编辑
                                                     </Button>
                                                     <Button
                                                         variant="danger"
                                                         size="sm"
                                                         onClick={() => handleDelete(customer._id)}
                                                     >
-                                                        Delete
+                                                        删除
                                                     </Button>
                                                 </>
                                             )}
@@ -225,24 +225,24 @@ export default function Customer() {
             {/* Contact Details Modal */}
             <Modal show={showContactModal} onHide={() => setShowContactModal(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Contact Details</Modal.Title>
+                    <Modal.Title>联系人详情</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div className="mb-3">
-                        <h6 className="text-muted">Name</h6>
+                        <h6 className="text-muted">名称</h6>
                         <p>{selectedCustomer?.name}</p>
                     </div>
                     <div className="mb-3">
-                        <h6 className="text-muted">Phone</h6>
+                        <h6 className="text-muted">电话</h6>
                         <p>{selectedCustomer?.phone || '-'}</p>
                     </div>
                     <div className="mb-3">
-                        <h6 className="text-muted">Email</h6>
+                        <h6 className="text-muted">邮箱</h6>
                         <p>{selectedCustomer?.email || '-'}</p>
                     </div>
                     {selectedCustomer?.address && (
                         <div className="mb-3">
-                            <h6 className="text-muted">Address</h6>
+                            <h6 className="text-muted">地址</h6>
                             <div className="pl-3">
                                 {selectedCustomer.address.street && <p>{selectedCustomer.address.street}</p>}
                                 {selectedCustomer.address.city && <p>{selectedCustomer.address.city}</p>}
@@ -255,7 +255,7 @@ export default function Customer() {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowContactModal(false)}>
-                        Close
+                        关闭
                     </Button>
                 </Modal.Footer>
             </Modal>
@@ -268,7 +268,7 @@ export default function Customer() {
                 <Modal.Body>
                     <Form onSubmit={handleSubmit}>
                         <Form.Group className="mb-3">
-                            <Form.Label>Company Name</Form.Label>
+                            <Form.Label>公司名称</Form.Label>
                             <Form.Control
                                 type="text"
                                 value={formData.companyName}
@@ -277,7 +277,7 @@ export default function Customer() {
                             />
                         </Form.Group>
                         <Form.Group className="mb-3">
-                            <Form.Label>Contact Name</Form.Label>
+                            <Form.Label>联系人名称</Form.Label>
                             <Form.Control
                                 type="text"
                                 value={formData.name}
@@ -286,7 +286,7 @@ export default function Customer() {
                             />
                         </Form.Group>
                         <Form.Group className="mb-3">
-                            <Form.Label>Email</Form.Label>
+                            <Form.Label>邮箱</Form.Label>
                             <Form.Control
                                 type="email"
                                 value={formData.email}
@@ -294,16 +294,16 @@ export default function Customer() {
                             />
                         </Form.Group>
                         <Form.Group className="mb-3">
-                            <Form.Label>Phone</Form.Label>
+                            <Form.Label>电话</Form.Label>
                             <Form.Control
                                 type="text"
                                 value={formData.phone}
                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                             />
                         </Form.Group>
-                        <h5 className="mt-4">Address</h5>
+                        <h5 className="mt-4">地址</h5>
                         <Form.Group className="mb-3">
-                            <Form.Label>Street</Form.Label>
+                            <Form.Label>街道</Form.Label>
                             <Form.Control
                                 type="text"
                                 value={formData.address.street}
@@ -314,7 +314,7 @@ export default function Customer() {
                             />
                         </Form.Group>
                         <Form.Group className="mb-3">
-                            <Form.Label>City</Form.Label>
+                            <Form.Label>城市</Form.Label>
                             <Form.Control
                                 type="text"
                                 value={formData.address.city}
@@ -325,7 +325,7 @@ export default function Customer() {
                             />
                         </Form.Group>
                         <Form.Group className="mb-3">
-                            <Form.Label>State</Form.Label>
+                            <Form.Label>省</Form.Label>
                             <Form.Control
                                 type="text"
                                 value={formData.address.state}
@@ -336,7 +336,7 @@ export default function Customer() {
                             />
                         </Form.Group>
                         <Form.Group className="mb-3">
-                            <Form.Label>Country</Form.Label>
+                            <Form.Label>国家</Form.Label>
                             <Form.Control
                                 type="text"
                                 value={formData.address.country}
@@ -347,7 +347,7 @@ export default function Customer() {
                             />
                         </Form.Group>
                         <Form.Group className="mb-3">
-                            <Form.Label>ZIP Code</Form.Label>
+                            <Form.Label>邮编</Form.Label>
                             <Form.Control
                                 type="text"
                                 value={formData.address.zipCode}
@@ -359,10 +359,10 @@ export default function Customer() {
                         </Form.Group>
                         <div className="d-flex justify-content-end">
                             <Button variant="secondary" className="me-2" onClick={handleCloseModal}>
-                                Cancel
+                                取消
                             </Button>
                             <Button variant="primary" type="submit">
-                                {selectedCustomer ? 'Update' : 'Create'}
+                                {selectedCustomer ? '更新' : '创建'}
                             </Button>
                         </div>
                     </Form>

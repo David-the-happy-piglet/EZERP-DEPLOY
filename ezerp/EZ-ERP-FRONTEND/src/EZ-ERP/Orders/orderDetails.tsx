@@ -25,7 +25,7 @@ export default function OrderDetails() {
             setOrder(response.data as Order);
             setLoading(false);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to fetch order details');
+            setError(err.response?.data?.message || '获取订单详情失败');
             setLoading(false);
         }
     };
@@ -35,7 +35,7 @@ export default function OrderDetails() {
             await orderService.delete(order!._id);
             navigate('/EZERP/Orders');
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Failed to delete order');
+            setError(err.response?.data?.message || '删除订单失败');
         }
     };
 
@@ -44,28 +44,28 @@ export default function OrderDetails() {
     };
 
     if (loading) {
-        return <div className="container mt-4">Loading...</div>;
+        return <div className="container mt-4">加载中...</div>;
     }
 
     if (!order) {
-        return <div className="container mt-4">Order not found</div>;
+        return <div className="container mt-4">未找到订单</div>;
     }
 
     return (
         <div className="container mt-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <h2>Order Details</h2>
+                <h2>订单详情</h2>
                 <div>
                     <Button variant="secondary" className="me-2" onClick={() => navigate('/EZERP/Orders')}>
-                        Back to Orders
+                        返回订单列表
                     </Button>
                     {canManageOrders && (
                         <>
                             <Button variant="primary" className="me-2" onClick={handleEdit}>
-                                Edit Order
+                                编辑订单
                             </Button>
                             <Button variant="danger" onClick={() => setShowDeleteModal(true)}>
-                                Delete Order
+                                删除订单
                             </Button>
                         </>
                     )}
@@ -78,32 +78,32 @@ export default function OrderDetails() {
                 <Card.Body>
                     <Row>
                         <Col md={6}>
-                            <h5>Order Information</h5>
-                            <p><strong>Order Number:</strong> {order.orderNumber}</p>
-                            <p><strong>Status:</strong> <Badge bg={order.status === 'DELIVERED' ? 'success' : 'primary'}>{order.status}</Badge></p>
-                            <p><strong>Payment Status:</strong> <Badge bg={order.paymentStatus === 'PAID' ? 'success' : 'warning'}>{order.paymentStatus}</Badge></p>
-                            <p><strong>Due Date:</strong> {new Date(order.dueDate).toLocaleDateString()}</p>
-                            <p><strong>Description:</strong> {order.description}</p>
+                            <h5>订单信息</h5>
+                            <p><strong>订单号：</strong> {order.orderNumber}</p>
+                            <p><strong>状态：</strong> <Badge bg={order.status === 'DELIVERED' ? 'success' : 'primary'}>{order.status}</Badge></p>
+                            <p><strong>付款状态：</strong> <Badge bg={order.paymentStatus === 'PAID' ? 'success' : 'warning'}>{order.paymentStatus}</Badge></p>
+                            <p><strong>交付日期：</strong> {new Date(order.dueDate).toLocaleDateString()}</p>
+                            <p><strong>描述：</strong> {order.description}</p>
                         </Col>
                         <Col md={6}>
-                            <h5>Customer Information</h5>
-                            <p><strong>Company:</strong> {order.customer.companyName}</p>
-                            <p><strong>Contact:</strong> {order.customer.name}</p>
-                            <p><strong>Email:</strong> {order.customer.email}</p>
-                            <p><strong>Phone:</strong> {order.customer.phone}</p>
+                            <h5>客户信息</h5>
+                            <p><strong>公司：</strong> {order.customer.companyName}</p>
+                            <p><strong>联系人：</strong> {order.customer.name}</p>
+                            <p><strong>邮箱：</strong> {order.customer.email}</p>
+                            <p><strong>电话：</strong> {order.customer.phone}</p>
                         </Col>
                     </Row>
 
                     <Row className="mt-4">
                         <Col>
-                            <h5>Items</h5>
+                            <h5>商品明细</h5>
                             <Table striped bordered>
                                 <thead>
                                     <tr>
-                                        <th>Product</th>
-                                        <th>Quantity</th>
-                                        <th>Price</th>
-                                        <th>Total</th>
+                                        <th>商品</th>
+                                        <th>数量</th>
+                                        <th>单价</th>
+                                        <th>小计</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -118,7 +118,7 @@ export default function OrderDetails() {
                                 </tbody>
                                 <tfoot>
                                     <tr>
-                                        <td colSpan={3} className="text-end"><strong>Total Amount:</strong></td>
+                                        <td colSpan={3} className="text-end"><strong>总金额：</strong></td>
                                         <td><strong>${order.totalAmount.toFixed(2)}</strong></td>
                                     </tr>
                                 </tfoot>
@@ -128,10 +128,10 @@ export default function OrderDetails() {
 
                     <Row className="mt-4">
                         <Col>
-                            <h5>Shipping Address</h5>
+                            <h5>收货地址</h5>
                             <p>
                                 {order.shippingAddress.street}<br />
-                                {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.zipCode}<br />
+                                {order.shippingAddress.city}，{order.shippingAddress.state} {order.shippingAddress.zipCode}<br />
                                 {order.shippingAddress.country}
                             </p>
                         </Col>
@@ -140,7 +140,7 @@ export default function OrderDetails() {
                     {order.notes && (
                         <Row className="mt-4">
                             <Col>
-                                <h5>Notes</h5>
+                                <h5>备注</h5>
                                 <p>{order.notes}</p>
                             </Col>
                         </Row>
@@ -150,17 +150,17 @@ export default function OrderDetails() {
 
             <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)}>
                 <Modal.Header closeButton>
-                    <Modal.Title>Confirm Delete</Modal.Title>
+                    <Modal.Title>确认删除</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    Are you sure you want to delete order {order?.orderNumber}? This action cannot be undone.
+                    确认删除订单 {order?.orderNumber} 吗？该操作不可撤销。
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>
-                        Cancel
+                        取消
                     </Button>
                     <Button variant="danger" onClick={handleDelete}>
-                        Delete
+                        删除
                     </Button>
                 </Modal.Footer>
             </Modal>

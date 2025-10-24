@@ -64,7 +64,7 @@ export default function OrderTable({ onOrderClick, onCreateOrder, canManageOrder
 
                 {canManageOrders && (
                     <Button variant="primary" onClick={onCreateOrder}>
-                        Create New Order
+                        新建订单
                     </Button>
                 )}
             </div>
@@ -72,7 +72,7 @@ export default function OrderTable({ onOrderClick, onCreateOrder, canManageOrder
             <Form.Group className="mb-3">
                 <Form.Control
                     type="text"
-                    placeholder="Search orders..."
+                    placeholder="搜索订单..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -81,10 +81,10 @@ export default function OrderTable({ onOrderClick, onCreateOrder, canManageOrder
             <Table striped bordered hover>
                 <thead>
                     <tr>
-                        <th>Order Number</th>
-                        <th>Customer</th>
-                        <th>Items</th>
-                        <th>Due Date</th>
+                        <th>订单号</th>
+                        <th>客户</th>
+                        <th>商品</th>
+                        <th>交付日期</th>
                         {/* <th>Description</th> */}
                     </tr>
                 </thead>

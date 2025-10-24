@@ -34,14 +34,14 @@ export default function PasswordChange() {
 
         // Validate passwords
         if (formData.newPassword !== formData.confirmPassword) {
-            setMessage({ type: 'danger', text: 'New passwords do not match!' });
+            setMessage({ type: 'danger', text: '新密码不匹配！' });
             setIsSubmitting(false);
             return;
         }
 
         // Validate password strength
         if (formData.newPassword.length < 3) {
-            setMessage({ type: 'danger', text: 'New password must be at least 3 characters long' });
+            setMessage({ type: 'danger', text: '新密码必须至少3个字符！' });
             setIsSubmitting(false);
             return;
         }
@@ -61,11 +61,11 @@ export default function PasswordChange() {
             });
 
             const responseData = response.data as PasswordResponse;
-            setMessage({ type: 'success', text: responseData.message || 'Password changed successfully!' });
+            setMessage({ type: 'success', text: responseData.message || '密码修改成功！' });
         } catch (err: any) {
             setMessage({
                 type: 'danger',
-                text: err.response?.data?.message || 'Failed to change password. Please check your current password and try again.'
+                text: err.response?.data?.message || '密码修改失败。请检查当前密码并重试。'
             });
         } finally {
             setIsSubmitting(false);
@@ -73,12 +73,12 @@ export default function PasswordChange() {
     };
 
     if (!currentUser) {
-        return <Alert variant="warning">Please log in to change your password.</Alert>;
+        return <Alert variant="warning">请登录后修改密码。</Alert>;
     }
 
     return (
         <div className="password-change-container">
-            <h2 className="mb-4">Change Password</h2>
+            <h2 className="mb-4">修改密码</h2>
 
             {message.text && (
                 <Alert variant={message.type === 'success' ? 'success' : 'danger'} className="mb-3">
@@ -90,44 +90,44 @@ export default function PasswordChange() {
                 <Card.Body>
                     <Form onSubmit={handleSubmit}>
                         <Form.Group className="mb-3">
-                            <Form.Label>Current Password</Form.Label>
+                            <Form.Label>当前密码</Form.Label>
                             <Form.Control
                                 type="password"
                                 name="oldPassword"
                                 value={formData.oldPassword}
                                 onChange={handleChange}
                                 required
-                                placeholder="Enter your current password"
+                                placeholder="输入当前密码"
                                 autoComplete="current-password"
                             />
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>New Password</Form.Label>
+                            <Form.Label>新密码</Form.Label>
                             <Form.Control
                                 type="password"
                                 name="newPassword"
                                 value={formData.newPassword}
                                 onChange={handleChange}
                                 required
-                                placeholder="Enter your new password"
+                                placeholder="输入新密码"
                                 autoComplete="new-password"
                                 minLength={6}
                             />
                             <Form.Text className="text-muted">
-                                Password must be at least 3 characters long
+                                密码必须至少3个字符！
                             </Form.Text>
                         </Form.Group>
 
                         <Form.Group className="mb-4">
-                            <Form.Label>Confirm New Password</Form.Label>
+                            <Form.Label>确认新密码</Form.Label>
                             <Form.Control
                                 type="password"
                                 name="confirmPassword"
                                 value={formData.confirmPassword}
                                 onChange={handleChange}
                                 required
-                                placeholder="Confirm your new password"
+                                placeholder="确认新密码"
                                 autoComplete="new-password"
                             />
                         </Form.Group>
@@ -141,9 +141,9 @@ export default function PasswordChange() {
                                 {isSubmitting ? (
                                     <>
                                         <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" />
-                                        <span className="ms-2">Changing Password...</span>
+                                        <span className="ms-2">修改密码...</span>
                                     </>
-                                ) : 'Change Password'}
+                                ) : '修改密码'}
                             </Button>
                         </div>
                     </Form>
