@@ -161,28 +161,18 @@ export const customerService = {
     create: (customerData: {
         companyName: string;
         name: string;
-        email?: string;
+        department: string;
+        position: string;
         phone?: string;
-        address?: {
-            street?: string;
-            city?: string;
-            state?: string;
-            country?: string;
-            zipCode?: string;
-        };
+        address: string;
     }) => api.post('/customers', customerData),
     update: (id: string, customerData: {
         companyName?: string;
         name?: string;
-        email?: string;
+        department?: string;
+        position?: string;
         phone?: string;
-        address?: {
-            street?: string;
-            city?: string;
-            state?: string;
-            country?: string;
-            zipCode?: string;
-        };
+        address?: string;
     }) => api.put(`/customers/${id}`, customerData),
     delete: (id: string) => api.delete(`/customers/${id}`),
 };

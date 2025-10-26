@@ -10,9 +10,12 @@ export interface Customer {
     _id: string;
     companyName: string;
     name: string;
-    email?: string;
+    department: string;
+    position: string;
     phone?: string;
-    address?: Address;
+    address: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export interface Order {

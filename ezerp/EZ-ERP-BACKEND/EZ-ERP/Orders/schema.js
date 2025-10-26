@@ -91,6 +91,10 @@ const orderSchema = new mongoose.Schema({
         set: (date) => date ? new Date(date) : null
     },
     notes: String,
+    isRework: {
+        type: Boolean,
+        default: false
+    },
     createdAt: {
         type: Date,
         default: Date.now,

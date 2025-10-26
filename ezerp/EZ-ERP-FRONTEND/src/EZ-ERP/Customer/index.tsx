@@ -1,9 +1,12 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { customerService } from '../services/api';
-import type { Customer, Address } from '../types';
-import { Button, Table, Modal, Form, Alert, Spinner, Card } from 'react-bootstrap';
+import type { Customer } from '../types';
+import { Form, Alert, Spinner, Card, Button } from 'react-bootstrap';
 import { useSelector } from 'react-redux';
 import { hasAnyRole, Role } from '../utils/roles';
+import CustomerTable from './CustomerTable';
+import CustomerDetailsModal from './CustomerDetailsModal';
+import CustomerFormModal from './CustomerFormModal';
 
 export default function Customer() {
     const [customers, setCustomers] = useState<Customer[]>([]);
@@ -12,21 +15,8 @@ export default function Customer() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-    const [showModal, setShowModal] = useState(false);
-    const [showContactModal, setShowContactModal] = useState(false);
-    const [formData, setFormData] = useState({
-        companyName: '',
-        name: '',
-        email: '',
-        phone: '',
-        address: {
-            street: '',
-            city: '',
-            state: '',
-            country: '',
-            zipCode: ''
-        } as Address
-    });
+    const [showFormModal, setShowFormModal] = useState(false);
+    const [showDetailsModal, setShowDetailsModal] = useState(false);
 
     const currentUser = useSelector((state: any) => state.accountReducer?.currentUser);
     const canManageCustomers = hasAnyRole(currentUser, Role.ADMIN, Role.MKT);
@@ -39,7 +29,7 @@ export default function Customer() {
         if (searchTerm.trim() === '') {
             setFilteredCustomers(customers);
         } else {
-            const filtered = customers.filter(customer =>
+            const filtered = customers.filter((customer: Customer) =>
                 customer.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 customer.name.toLowerCase().includes(searchTerm.toLowerCase())
             );
@@ -65,56 +55,32 @@ export default function Customer() {
         }
     };
 
-    const handleShowModal = (customer?: Customer) => {
-        if (customer) {
-            setSelectedCustomer(customer);
-            setFormData({
-                companyName: customer.companyName,
-                name: customer.name,
-                email: customer.email || '',
-                phone: customer.phone || '',
-                address: customer.address || {
-                    street: '',
-                    city: '',
-                    state: '',
-                    country: '',
-                    zipCode: ''
-                }
-            });
-        } else {
-            setSelectedCustomer(null);
-            setFormData({
-                companyName: '',
-                name: '',
-                email: '',
-                phone: '',
-                address: {
-                    street: '',
-                    city: '',
-                    state: '',
-                    country: '',
-                    zipCode: ''
-                }
-            });
-        }
-        setShowModal(true);
+    const handleOpenForm = (customer?: Customer) => {
+        setSelectedCustomer(customer || null);
+        setShowFormModal(true);
     };
 
-    const handleCloseModal = () => {
-        setShowModal(false);
+    const handleCloseForm = () => {
+        setShowFormModal(false);
         setSelectedCustomer(null);
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmitForm = async (payload: {
+        companyName: string;
+        name: string;
+        department: string;
+        position: string;
+        phone?: string;
+        address: string;
+    }) => {
         try {
             if (selectedCustomer) {
-                await customerService.update(selectedCustomer._id, formData);
+                await customerService.update(selectedCustomer._id, payload);
             } else {
-                await customerService.create(formData);
+                await customerService.create(payload);
             }
-            fetchCustomers();
-            handleCloseModal();
+            await fetchCustomers();
+            handleCloseForm();
         } catch (err) {
             setError('Failed to save customer');
             console.error('Error saving customer:', err);
@@ -157,218 +123,41 @@ export default function Customer() {
                             type="text"
                             placeholder="按公司名称或联系人名称搜索..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                             style={{ width: '300px' }}
                         />
                         {canManageCustomers && (
-                            <Button variant="primary" onClick={() => handleShowModal()}>
+                            <Button variant="primary" onClick={() => handleOpenForm()}>
                                 添加新客户
                             </Button>
                         )}
                     </div>
 
-                    <div className="table-responsive">
-                        <Table striped bordered hover>
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>公司名称</th>
-                                    <th>联系人名称</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredCustomers.map((customer) => (
-                                    <tr key={customer._id}>
-                                        <td>{customer._id?.toString() || '-'}</td>
-                                        <td>{customer.companyName}</td>
-                                        <td>{customer.name}</td>
-                                        <td>
-                                            <Button
-                                                variant="info"
-                                                size="sm"
-                                                className="me-2"
-                                                onClick={() => {
-                                                    setSelectedCustomer(customer);
-                                                    setShowContactModal(true);
-                                                }}
-                                            >
-                                                联系人详情
-                                            </Button>
-                                            {canManageCustomers && (
-                                                <>
-                                                    <Button
-                                                        variant="warning"
-                                                        size="sm"
-                                                        className="me-2"
-                                                        onClick={() => handleShowModal(customer)}
-                                                    >
-                                                        编辑
-                                                    </Button>
-                                                    <Button
-                                                        variant="danger"
-                                                        size="sm"
-                                                        onClick={() => handleDelete(customer._id)}
-                                                    >
-                                                        删除
-                                                    </Button>
-                                                </>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </Table>
-                    </div>
+                    <CustomerTable
+                        customers={filteredCustomers}
+                        canManage={canManageCustomers}
+                        onEdit={(c: Customer) => handleOpenForm(c)}
+                        onDelete={handleDelete}
+                        onView={(c: Customer) => {
+                            setSelectedCustomer(c);
+                            setShowDetailsModal(true);
+                        }}
+                    />
                 </Card.Body>
             </Card>
 
-            {/* Contact Details Modal */}
-            <Modal show={showContactModal} onHide={() => setShowContactModal(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>联系人详情</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <div className="mb-3">
-                        <h6 className="text-muted">名称</h6>
-                        <p>{selectedCustomer?.name}</p>
-                    </div>
-                    <div className="mb-3">
-                        <h6 className="text-muted">电话</h6>
-                        <p>{selectedCustomer?.phone || '-'}</p>
-                    </div>
-                    <div className="mb-3">
-                        <h6 className="text-muted">邮箱</h6>
-                        <p>{selectedCustomer?.email || '-'}</p>
-                    </div>
-                    {selectedCustomer?.address && (
-                        <div className="mb-3">
-                            <h6 className="text-muted">地址</h6>
-                            <div className="pl-3">
-                                {selectedCustomer.address.street && <p>{selectedCustomer.address.street}</p>}
-                                {selectedCustomer.address.city && <p>{selectedCustomer.address.city}</p>}
-                                {selectedCustomer.address.state && <p>{selectedCustomer.address.state}</p>}
-                                {selectedCustomer.address.country && <p>{selectedCustomer.address.country}</p>}
-                                {selectedCustomer.address.zipCode && <p>{selectedCustomer.address.zipCode}</p>}
-                            </div>
-                        </div>
-                    )}
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowContactModal(false)}>
-                        关闭
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+            <CustomerDetailsModal
+                show={showDetailsModal}
+                customer={selectedCustomer}
+                onClose={() => setShowDetailsModal(false)}
+            />
 
-            {/* Create/Edit Modal */}
-            <Modal show={showModal} onHide={handleCloseModal}>
-                <Modal.Header closeButton>
-                    <Modal.Title>{selectedCustomer ? 'Edit Customer' : 'Create New Customer'}</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form onSubmit={handleSubmit}>
-                        <Form.Group className="mb-3">
-                            <Form.Label>公司名称</Form.Label>
-                            <Form.Control
-                                type="text"
-                                value={formData.companyName}
-                                onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                                required
-                            />
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label>联系人名称</Form.Label>
-                            <Form.Control
-                                type="text"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                required
-                            />
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label>邮箱</Form.Label>
-                            <Form.Control
-                                type="email"
-                                value={formData.email}
-                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                            />
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label>电话</Form.Label>
-                            <Form.Control
-                                type="text"
-                                value={formData.phone}
-                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                            />
-                        </Form.Group>
-                        <h5 className="mt-4">地址</h5>
-                        <Form.Group className="mb-3">
-                            <Form.Label>街道</Form.Label>
-                            <Form.Control
-                                type="text"
-                                value={formData.address.street}
-                                onChange={(e) => setFormData({
-                                    ...formData,
-                                    address: { ...formData.address, street: e.target.value }
-                                })}
-                            />
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label>城市</Form.Label>
-                            <Form.Control
-                                type="text"
-                                value={formData.address.city}
-                                onChange={(e) => setFormData({
-                                    ...formData,
-                                    address: { ...formData.address, city: e.target.value }
-                                })}
-                            />
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label>省</Form.Label>
-                            <Form.Control
-                                type="text"
-                                value={formData.address.state}
-                                onChange={(e) => setFormData({
-                                    ...formData,
-                                    address: { ...formData.address, state: e.target.value }
-                                })}
-                            />
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label>国家</Form.Label>
-                            <Form.Control
-                                type="text"
-                                value={formData.address.country}
-                                onChange={(e) => setFormData({
-                                    ...formData,
-                                    address: { ...formData.address, country: e.target.value }
-                                })}
-                            />
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label>邮编</Form.Label>
-                            <Form.Control
-                                type="text"
-                                value={formData.address.zipCode}
-                                onChange={(e) => setFormData({
-                                    ...formData,
-                                    address: { ...formData.address, zipCode: e.target.value }
-                                })}
-                            />
-                        </Form.Group>
-                        <div className="d-flex justify-content-end">
-                            <Button variant="secondary" className="me-2" onClick={handleCloseModal}>
-                                取消
-                            </Button>
-                            <Button variant="primary" type="submit">
-                                {selectedCustomer ? '更新' : '创建'}
-                            </Button>
-                        </div>
-                    </Form>
-                </Modal.Body>
-            </Modal>
+            <CustomerFormModal
+                show={showFormModal}
+                initialCustomer={selectedCustomer}
+                onClose={handleCloseForm}
+                onSubmit={handleSubmitForm}
+            />
         </div>
     );
 }

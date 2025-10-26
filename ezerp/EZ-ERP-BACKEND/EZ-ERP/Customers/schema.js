@@ -17,22 +17,24 @@ const customerSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    email: {
+    department: {
         type: String,
         required: true,
-        trim: true,
-        lowercase: true
+        trim: true
+    },
+    position: {
+        type: String,
+        required: true,
+        trim: true
     },
     phone: {
         type: String,
         trim: true
     },
     address: {
-        street: String,
-        city: String,
-        state: String,
-        country: String,
-        zipCode: String
+        type: String,
+        required: true,
+        trim: true
     },
     createdAt: {
         type: Date,
