@@ -110,7 +110,7 @@ export default function OrderDetails() {
                                 <tbody>
                                     {order.items.map((item, index) => (
                                         <tr key={index}>
-                                            <td>{item.productName}</td>
+                                            <td>{item.itemId}</td>
                                             <td>{item.quantity}</td>
                                             <td>${item.price.toFixed(2)}</td>
                                             <td>${(item.quantity * item.price).toFixed(2)}</td>

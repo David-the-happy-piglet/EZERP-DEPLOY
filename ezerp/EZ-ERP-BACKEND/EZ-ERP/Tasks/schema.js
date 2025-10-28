@@ -14,7 +14,10 @@ const taskSchema = new mongoose.Schema({
 
     orderNumber: {
         type: String,
-        trim: true
+        trim: true,
+        required: function() {
+            return this.orderRelated;
+        }
     },
 
     title: {
@@ -57,6 +60,62 @@ const taskSchema = new mongoose.Schema({
         required: true,
         enum: ['low', 'medium', 'high'],
         default: 'medium'
+    },
+
+    progressDetails: {
+        type: [{
+            date: {
+                type: Date,
+                required: true
+            },
+            description: {
+                type: String,
+                required: true
+            }
+        }],
+        required: false
+    },
+
+    items: [{
+        itemId: {
+            type: String,
+            ref: 'Item',
+            required: function() {
+            return this.orderRelated;
+        }
+        },
+    
+        quantity: {
+            type: Number,
+            required: function() {
+                return this.orderRelated;
+            },
+            min: 1
+        }
+    }],
+    typeI:{
+        type: String,
+        enum: ['cutting', 'machining', 'plating', 'QC', 'tempering', 'shipping','other'],
+        required: function() {
+            return this.orderRelated;
+        }
+    },
+    typeII:{
+        type: String,
+        enum: ['rework','add-on'],
+        required: false
+    },
+    outsourcing:{
+        type: Boolean,
+        required: false
+    },
+    outsourcingCompany:{
+        type: String,
+        required: false
+    },
+    outsourcingContact:{
+        type: String,
+        required: false
     }
 }, {
     timestamps: true,

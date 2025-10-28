@@ -5,11 +5,11 @@ import { UserRole } from '../Users/schema.js';
 // Register a new user
 export const register = async (req, res) => {
     try {
-        const { username, password, firstName, lastName, email, dob, role } = req.body;
+        const { username, password, firstName, lastName, role } = req.body;
 
         // Validate required fields
-        if (!username || !password || !firstName || !lastName || !email || !dob) {
-            return res.status(400).json({ error: 'All fields are required' });
+        if (!username || !password || !firstName || !lastName) {
+            return res.status(400).json({ error: 'Username, password, first name, and last name are required' });
         }
 
         // Check if user already exists
@@ -18,19 +18,12 @@ export const register = async (req, res) => {
             return res.status(400).json({ error: 'Username already exists' });
         }
 
-        const existingEmail = await userDAO.getUserByEmail(email);
-        if (existingEmail) {
-            return res.status(400).json({ error: 'Email already exists' });
-        }
-
         // Create user with plain text password
         const userData = {
             username,
             password, // Store password as plain text
             firstName,
             lastName,
-            email,
-            dob: new Date(dob),
             role: role || UserRole.MKT
         };
 
@@ -50,8 +43,6 @@ export const register = async (req, res) => {
                 username: user.username,
                 firstName: user.firstName,
                 lastName: user.lastName,
-                email: user.email,
-                dob: user.dob,
                 role: user.role
             }
         });
@@ -80,7 +71,7 @@ export const login = async (req, res) => {
         // Check password (plain text comparison)
         if (password !== user.password) {
             console.log('Invalid password for user:', username);
-            return res.status(401).json({ message: 'Invalid credentials' });
+            return res.status(401).json({ message: 'Invalid credentials wrong password' });
         }
 
         // Store user info in session
@@ -108,8 +99,6 @@ export const login = async (req, res) => {
                     username: user.username,
                     firstName: user.firstName,
                     lastName: user.lastName,
-                    email: user.email,
-                    dob: user.dob,
                     role: user.role
                 }
             });
@@ -142,8 +131,6 @@ export const getProfile = async (req, res) => {
                 username: user.username,
                 firstName: user.firstName,
                 lastName: user.lastName,
-                email: user.email,
-                dob: user.dob,
                 role: user.role
             }
         });

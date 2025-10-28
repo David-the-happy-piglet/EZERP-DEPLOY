@@ -10,6 +10,7 @@ import ProtectedRoute from "./Login/ProtectedRoute";
 import HumanResource from "./HumanResource";
 import ProjectManagement from "./PM";
 import Tasks from "./PM/Tasks";
+import Inventory from "./Inventory";
 import './style.css';
 import OrderCreate from "./Orders/orderCreate";
 import OrderEdit from "./Orders/orderEdit";
@@ -40,6 +41,7 @@ export default function EZ_ERP() {
                         <Route path="Finance/*" element={<ProtectedRoute><Finance /></ProtectedRoute>} />
                         <Route path="Account/*" element={<ProtectedRoute><Account /></ProtectedRoute>} />
                         <Route path="HR/*" element={<ProtectedRoute><HumanResource /></ProtectedRoute>} />
+                        <Route path="Inventory/*" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
                     </Routes>
                 </div>
             </div>

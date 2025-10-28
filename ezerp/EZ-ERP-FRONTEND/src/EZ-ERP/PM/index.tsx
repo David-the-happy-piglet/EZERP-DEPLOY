@@ -338,14 +338,34 @@ export default function ProjectManagement() {
     const getPriorityBadge = (priority: string) => {
         switch (priority) {
             case 'low':
-                return <Badge bg="info">低</Badge>;
+                return <Badge bg="info">Low</Badge>;
             case 'medium':
-                return <Badge bg="warning">中</Badge>;
+                return <Badge bg="warning">Medium</Badge>;
             case 'high':
-                return <Badge bg="danger">高</Badge>;
+                return <Badge bg="danger">High</Badge>;
             default:
                 return <Badge bg="secondary">{priority}</Badge>;
         }
+    };
+
+    const getTaskRowClassName = (task: Task) => {
+        const dueDate = new Date(task.dueDate);
+        const today = new Date();
+        const threeDaysFromNow = new Date(today.getTime() + (3 * 24 * 60 * 60 * 1000));
+        
+        // Clear time to compare only dates
+        today.setHours(0, 0, 0, 0);
+        threeDaysFromNow.setHours(0, 0, 0, 0);
+        dueDate.setHours(0, 0, 0, 0);
+        
+        if (task.status !== 'completed') {
+            if (dueDate < today) {
+                return 'table-danger'; // Red for overdue
+            } else if (dueDate <= threeDaysFromNow) {
+                return 'table-warning'; // Yellow for due within 3 days
+            }
+        }
+        return '';
     };
 
     // Add these functions for editing and deleting tasks
@@ -405,7 +425,10 @@ export default function ProjectManagement() {
                                 </tr>
                             ) : (
                                 orders.map(order => (
-                                    <tr key={order._id}>
+                                    <tr key={order._id} className={getTaskRowClassName({
+                                        _id: '', title: '', description: '', assignedTo: '', assignedBy: '', postDate: order.dueDate,
+                                        dueDate: order.dueDate, status: 'pending', priority: 'low', orderRelated: true
+                                    } as any)}>
                                         <td>{order.orderNumber}</td>
                                         <td>{new Date(order.dueDate).toLocaleDateString()}</td>
                                         <td>
@@ -568,7 +591,7 @@ export default function ProjectManagement() {
                                     </tr>
                                 ) : (
                                     filteredTasks.map(task => (
-                                        <tr key={task._id}>
+                                        <tr key={task._id} className={getTaskRowClassName(task)}>
                                             <td className="text-center">
                                                 {task.orderRelated && (
                                                     <div style={{

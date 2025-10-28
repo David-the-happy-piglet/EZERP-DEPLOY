@@ -1,5 +1,7 @@
 import express from 'express';
 import itemDAO from './dao.js';
+import { uploadImage , getImageUrl} from '../utils/s3.js';
+
 
 const router = express.Router();
 
@@ -35,6 +37,14 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+router.get('/image/:id', async (req, res) => {
+    try {
+        const item = await itemDAO.getItemById(req.params.id);
+        res.status(200).json(await getImageUrl(item.imagePath));
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching item image', error: error.message });
+    }
+});
 router.get('/order/:orderNumber', async (req, res) => {
     try {
         const items = await itemDAO.getItemsByOrderNumber(req.params.orderNumber);
@@ -50,6 +60,14 @@ router.post('/', async (req, res) => {
         res.status(201).json(item);
     } catch (error) {
         res.status(500).json({ message: 'Error creating item', error: error.message });
+    }
+});
+
+router.post('/upload-image', async (req, res) => {
+    try {
+        res.status(200).json(await itemDAO.updateItemImage(req.params.id, req.body.imagePath));
+    } catch (error) {
+        res.status(500).json({ message: 'Error uploading image', error: error.message });
     }
 });
 

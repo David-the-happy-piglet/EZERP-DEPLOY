@@ -10,7 +10,6 @@ interface UserProfileResponse {
         username: string;
         firstName: string;
         lastName: string;
-        email: string;
         role: string;
     };
 }
@@ -22,9 +21,6 @@ export default function Profile() {
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
-        email: '',
-        phone: '',
-        department: '',
         role: ''
     });
 
@@ -37,9 +33,6 @@ export default function Profile() {
             setFormData({
                 firstName: currentUser.firstName || '',
                 lastName: currentUser.lastName || '',
-                email: currentUser.email || '',
-                phone: currentUser.phone || '',
-                department: currentUser.department || '',
                 role: currentUser.role || ''
             });
         }
@@ -68,8 +61,7 @@ export default function Profile() {
 
             await authService.updateUser(userId, {
                 firstName: formData.firstName,
-                lastName: formData.lastName,
-                email: formData.email
+                lastName: formData.lastName
             });
 
             // Fetch updated user data
@@ -164,29 +156,32 @@ export default function Profile() {
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>邮箱</Form.Label>
-                                    <Form.Control
-                                        type="email"
-                                        name="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        disabled={!isEditing}
-                                    />
-                                </Form.Group>
-                            </Col>
-
-                            {/* <Col md={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>电话</Form.Label>
+                                    <Form.Label>用户名</Form.Label>
                                     <Form.Control
                                         type="text"
-                                        name="phone"
-                                        value={formData.phone}
-                                        onChange={handleChange}
-                                        disabled={!isEditing}
+                                        value={currentUser.username || ''}
+                                        disabled
+                                        className="bg-light"
                                     />
+                                    <Form.Text className="text-muted">
+                                        用户名不可修改
+                                    </Form.Text>
                                 </Form.Group>
-                            </Col> */}
+                            </Col>
+                            <Col md={6}>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>角色</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        value={currentUser.role || ''}
+                                        disabled
+                                        className="bg-light"
+                                    />
+                                    <Form.Text className="text-muted">
+                                        角色由管理员分配
+                                    </Form.Text>
+                                </Form.Group>
+                            </Col>
                         </Row>
 
                         <div className="d-flex justify-content-end mt-4">

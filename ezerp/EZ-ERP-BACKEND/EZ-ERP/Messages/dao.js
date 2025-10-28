@@ -93,6 +93,33 @@ class MessageDAO {
             throw new Error(`Error deleting message: ${error.message}`);
         }
     }
+
+    // Get messages with pagination
+    async getMessagesPaginated(page = 1, limit = 10, filters = {}) {
+        try {
+            const skip = (page - 1) * limit;
+            const query = Message.find(filters)
+                .sort({ postDate: -1 })
+                .skip(skip)
+                .limit(limit);
+
+            const records = await query.exec();
+            const total = await Message.countDocuments(filters);
+
+            return {
+                records,
+                pagination: {
+                    currentPage: page,
+                    totalPages: Math.ceil(total / limit),
+                    totalRecords: total,
+                    hasNextPage: page < Math.ceil(total / limit),
+                    hasPrevPage: page > 1
+                }
+            };
+        } catch (error) {
+            throw new Error(`Error fetching paginated messages: ${error.message}`);
+        }
+    }
 }
 
 export default new MessageDAO(); 

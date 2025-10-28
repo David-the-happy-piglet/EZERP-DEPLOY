@@ -12,6 +12,24 @@ services:
     ports:
       - "27017:27017"
 
+
+  # minio:
+  #   image: minio/minio:latest
+  #   container_name: ez-erp-minio
+  #   restart: unless-stopped
+  #   environment:
+  #     MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+  #     MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+  #     # 供控制台外链使用（本机访问时用 localhost）
+  #     MINIO_SERVER_URL: ${MINIO_SERVER_URL:-http://localhost:9000}
+  #     MINIO_BROWSER_REDIRECT_URL: ${MINIO_BROWSER_REDIRECT_URL:-http://localhost:9001}
+  #   command: server /data --console-address ":9001"
+  #   ports:
+  #     - "9000:9000" # API
+  #     - "9001:9001" # Console
+  #   volumes:
+  #     - minio_data:/data
+
   backend:
     build:
       context: ./EZ-ERP-BACKEND
@@ -24,6 +42,14 @@ services:
       - SESSION_SECRET=${SESSION_SECRET}
       - CORS_ORIGINS=${CORS_ORIGINS}
       - TRUST_PROXY=${TRUST_PROXY}
+
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-minioadmin}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-minioadmin}
+      - AWS_S3_BUCKET=${AWS_S3_BUCKET:-ez-erp-bucket}
+      - S3_ENDPOINT=${S3_ENDPOINT:-http://host.docker.internal:9000}
+      - S3_FORCE_PATH_STYLE=${S3_FORCE_PATH_STYLE:-true}
+
     ports:
       - "${BACKEND_PORT}:3000"
     depends_on:
@@ -48,5 +74,6 @@ networks:
 
 volumes:
   mongo_data:
+  minio_data:
 
 

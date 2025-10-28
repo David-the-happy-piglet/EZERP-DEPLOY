@@ -10,7 +10,11 @@ class TaskDAO {
                 _id: taskData._id || `TASK-${uuidv4().substring(0, 8)}`,
                 postDate: taskData.postDate || new Date(),
                 status: taskData.status || 'pending',
-                priority: taskData.priority || 'medium'
+                priority: taskData.priority || 'medium',
+                orderRelated: taskData.orderRelated || false,
+                progressDetails: taskData.progressDetails || [],
+                items: taskData.items || [],
+                outsourcing: taskData.outsourcing || false
             });
             return await task.save();
         } catch (error) {
@@ -83,6 +87,50 @@ class TaskDAO {
         }
     }
 
+    // Get tasks by typeI
+    async getTasksByTypeI(typeI) {
+        try {
+            const validTypeI = ['cutting', 'machining', 'plating', 'QC', 'tempering', 'shipping', 'other'];
+            if (!validTypeI.includes(typeI)) {
+                throw new Error('Invalid task typeI');
+            }
+            return await Task.find({ typeI }).sort({ dueDate: 1 });
+        } catch (error) {
+            throw new Error(`Error fetching tasks by typeI: ${error.message}`);
+        }
+    }
+
+    // Get tasks by typeII
+    async getTasksByTypeII(typeII) {
+        try {
+            const validTypeII = ['rework', 'add-on'];
+            if (!validTypeII.includes(typeII)) {
+                throw new Error('Invalid task typeII');
+            }
+            return await Task.find({ typeII }).sort({ dueDate: 1 });
+        } catch (error) {
+            throw new Error(`Error fetching tasks by typeII: ${error.message}`);
+        }
+    }
+
+    // Get tasks by outsourcing status
+    async getTasksByOutsourcing(isOutsourced) {
+        try {
+            return await Task.find({ outsourcing: isOutsourced }).sort({ dueDate: 1 });
+        } catch (error) {
+            throw new Error(`Error fetching tasks by outsourcing status: ${error.message}`);
+        }
+    }
+
+    // Get tasks by outsourcing company
+    async getTasksByOutsourcingCompany(outsourcingCompany) {
+        try {
+            return await Task.find({ outsourcingCompany }).sort({ dueDate: 1 });
+        } catch (error) {
+            throw new Error(`Error fetching tasks by outsourcing company: ${error.message}`);
+        }
+    }
+
     // Update task
     async updateTask(id, updateData) {
         try {
@@ -114,6 +162,70 @@ class TaskDAO {
         }
     }
 
+    // Add progress detail to task
+    async addProgressDetail(id, progressDetail) {
+        try {
+            const task = await Task.findByIdAndUpdate(
+                id,
+                {
+                    $push: {
+                        progressDetails: {
+                            date: progressDetail.date || new Date(),
+                            description: progressDetail.description
+                        }
+                    },
+                    updatedAt: new Date()
+                },
+                { new: true }
+            );
+            return task;
+        } catch (error) {
+            throw new Error(`Error adding progress detail: ${error.message}`);
+        }
+    }
+
+    // Update progress detail
+    async updateProgressDetail(id, progressIndex, progressDetail) {
+        try {
+            const task = await Task.findByIdAndUpdate(
+                id,
+                {
+                    $set: {
+                        [`progressDetails.${progressIndex}.date`]: progressDetail.date,
+                        [`progressDetails.${progressIndex}.description`]: progressDetail.description
+                    },
+                    updatedAt: new Date()
+                },
+                { new: true }
+            );
+            return task;
+        } catch (error) {
+            throw new Error(`Error updating progress detail: ${error.message}`);
+        }
+    }
+
+    // Remove progress detail
+    async removeProgressDetail(id, progressIndex) {
+        try {
+            const task = await Task.findByIdAndUpdate(
+                id,
+                {
+                    $unset: {
+                        [`progressDetails.${progressIndex}`]: 1
+                    },
+                    $pull: {
+                        progressDetails: null
+                    },
+                    updatedAt: new Date()
+                },
+                { new: true }
+            );
+            return task;
+        } catch (error) {
+            throw new Error(`Error removing progress detail: ${error.message}`);
+        }
+    }
+
     // Delete task
     async deleteTask(id) {
         try {
@@ -121,6 +233,33 @@ class TaskDAO {
             return task;
         } catch (error) {
             throw new Error(`Error deleting task: ${error.message}`);
+        }
+    }
+
+    // Get tasks with pagination
+    async getTasksPaginated(page = 1, limit = 10, filters = {}) {
+        try {
+            const skip = (page - 1) * limit;
+            const query = Task.find(filters)
+                .sort({ dueDate: 1 })
+                .skip(skip)
+                .limit(limit);
+
+            const records = await query.exec();
+            const total = await Task.countDocuments(filters);
+
+            return {
+                records,
+                pagination: {
+                    currentPage: page,
+                    totalPages: Math.ceil(total / limit),
+                    totalRecords: total,
+                    hasNextPage: page < Math.ceil(total / limit),
+                    hasPrevPage: page > 1
+                }
+            };
+        } catch (error) {
+            throw new Error(`Error fetching paginated tasks: ${error.message}`);
         }
     }
 }

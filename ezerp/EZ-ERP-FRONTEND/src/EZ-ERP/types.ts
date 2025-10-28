@@ -37,8 +37,7 @@ export interface Order {
         };
     };
     items: Array<{
-        productId: string;
-        productName: string;
+        itemId: string;
         quantity: number;
         price: number;
     }>;

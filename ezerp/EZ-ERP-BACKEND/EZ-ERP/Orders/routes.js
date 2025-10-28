@@ -1,7 +1,7 @@
 import express from 'express';
 import orderDAO from './dao.js';
 import { OrderStatus, PaymentStatus } from './schema.js';
-
+import { getImageUrl } from '../utils/s3.js';
 const router = express.Router();
 
 // Middleware to validate order data
@@ -124,6 +124,15 @@ router.get('/payment/:paymentStatus', async (req, res) => {
     }
 });
 
+router.get('/image/:id', async (req, res) => {
+    try {
+        const order = await orderDAO.getOrderById(req.params.id);
+        res.status(200).json(await getImageUrl(order.orderImage));
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching order image', error: error.message });
+    }
+});
+
 // Update order
 router.put('/:id', validateOrderData, async (req, res) => {
     try {
@@ -165,6 +174,45 @@ router.patch('/:id/payment', async (req, res) => {
         if (!order) {
             return res.status(404).json({ error: 'Order not found' });
         }
+        res.json(order);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+// Add item to an order
+router.post('/:id/items', async (req, res) => {
+    try {
+        const { itemId, itemName, itemType,itemSize, itemStandard, quantity = 1, price = 0 } = req.body;
+        const order = await orderDAO.addItemToOrder(req.params.id, { itemId, itemName, itemType,itemSize, itemStandard, quantity, price });
+        res.status(200).json(order);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+router.post('/:id/upload-image', async (req, res) => {
+    try {
+        res.status(200).json(await orderDAO.updateOrderImage(req.params.id, req.body.imagePath));
+    } catch (error) {
+        res.status(500).json({ message: 'Error uploading image', error: error.message });
+    }
+});
+
+router.put('/:id/items/:itemId', async (req, res) => {
+    try {
+        const { id, itemId } = req.params;
+        const { price = 0, quantity = 1 } = req.body;
+        const order = await orderDAO.updateItem(id, itemId, price, quantity);
+        res.json(order);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+});
+
+router.delete('/:id/items/:itemId', async (req, res) => {
+    try {
+        const order = await orderDAO.deleteItem(req.params.id, req.params.itemId);
         res.json(order);
     } catch (error) {
         res.status(400).json({ error: error.message });

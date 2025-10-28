@@ -1,16 +1,16 @@
 import mongoose from 'mongoose';
-import customerSchema from '../Customers/schema.js';
+
 
 // User roles enum
 
 
 // Order status enum
 export const OrderStatus = {
+    BIDDING: 'BIDDING',
     PENDING: 'PENDING',
     PROCESSING: 'PROCESSING',
-    SHIPPED: 'SHIPPED',
-    DELIVERED: 'DELIVERED',
-    CANCELLED: 'CANCELLED'
+    CANCELLED: 'CANCELLED',
+    COMPLETED: 'COMPLETED'
 };
 
 // Payment status enum
@@ -33,8 +33,9 @@ const orderSchema = new mongoose.Schema({
         unique: true
     },
 
-    customer: {
-        type: customerSchema,
+    customerId: {
+        type: String,
+        ref: 'Customer',
         required: true
     },
     description: {
@@ -42,29 +43,24 @@ const orderSchema = new mongoose.Schema({
         required: true,
     },
     items: [{
-        productId: {
+        itemId: {
             type: String,
-            ref: 'Product',
+            ref: 'Item',
             required: true
         },
-        productName: {
-            type: String,
-            required: true
+        price: {      
+        //unit price
+            type: Number,
+            min: 0
         },
         quantity: {
             type: Number,
             required: true,
             min: 1
-        },
-        price: {
-            type: Number,
-            required: true,
-            min: 0
         }
     }],
     totalAmount: {
         type: Number,
-        required: true,
         min: 0
     },
     status: {
@@ -94,6 +90,18 @@ const orderSchema = new mongoose.Schema({
     isRework: {
         type: Boolean,
         default: false
+    },
+    reworkReason: {
+        type: String,
+        trim: true
+    },
+    reworkOrderNumber: {
+        type: String,
+        trim: true
+    },
+    orderImage: {
+        type: String,
+        required: false
     },
     createdAt: {
         type: Date,

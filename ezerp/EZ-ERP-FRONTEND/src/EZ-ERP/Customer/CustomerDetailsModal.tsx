@@ -1,4 +1,3 @@
-import React from 'react';
 import type { Customer } from '../types';
 import { Modal, Button } from 'react-bootstrap';
 

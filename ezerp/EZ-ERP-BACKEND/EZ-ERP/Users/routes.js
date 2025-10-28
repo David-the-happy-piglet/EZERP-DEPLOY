@@ -16,9 +16,7 @@ router.get('/', verifySession, async (req, res) => {
             username: user.username,
             firstName: user.firstName,
             lastName: user.lastName,
-            email: user.email,
             role: user.role,
-            dob: user.dob,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt
         }));
@@ -36,17 +34,12 @@ router.post('/', verifySession, async (req, res) => {
             return res.status(403).json({ message: 'Unauthorized' });
         }
 
-        const { username, password, firstName, lastName, email, dob, role } = req.body;
+        const { username, password, firstName, lastName, role } = req.body;
 
-        // Check if username or email already exists
+        // Check if username already exists
         const existingUser = await UserDAO.getUserByUsername(username);
         if (existingUser) {
             return res.status(400).json({ message: 'Username already exists' });
-        }
-
-        const existingEmail = await UserDAO.getUserByEmail(email);
-        if (existingEmail) {
-            return res.status(400).json({ message: 'Email already exists' });
         }
 
         // Create user with plain text password
@@ -55,9 +48,7 @@ router.post('/', verifySession, async (req, res) => {
             password, // Store as plain text
             firstName,
             lastName,
-            email,
-            dob: new Date(dob),
-            role: role || UserRole.MKT
+            role: role || UserRole.GUEST
         });
 
         // Return user info without sensitive data
@@ -66,9 +57,9 @@ router.post('/', verifySession, async (req, res) => {
             username: user.username,
             firstName: user.firstName,
             lastName: user.lastName,
-            email: user.email,
             role: user.role,
-            dob: user.dob
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt
         });
     } catch (error) {
         console.error('Error creating user:', error);

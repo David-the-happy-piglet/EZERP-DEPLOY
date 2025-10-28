@@ -3,6 +3,7 @@ import { Card, Table, Button, Badge, Spinner, Form, Modal, ListGroup } from 'rea
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { taskService, messageService } from '../services/api';
+import SummaryBadge from './SummaryBadge';
 
 // Generate a random ID for messages
 /* const generateMessageId = () => {
@@ -26,7 +27,7 @@ interface Task {
 // Update the Message interface to match the API service
 interface Message {
     _id?: string;
-    messageType: 'new order' | 'order status change' | 'order update' | 'others';
+    messageType: 'new order' | 'order status change' | 'order update' | 'others' ;
     messageTitle: string;
     messageContent: string;
     postedBy: string;
@@ -242,9 +243,31 @@ export default function Overview() {
                 return <Badge bg="warning">待办</Badge>;
             case 'in progress':
                 return <Badge bg="primary">进行中</Badge>;
+            case 'completed':
+                return <Badge bg="success">已完成</Badge>;
             default:
                 return <Badge bg="secondary">{status}</Badge>;
         }
+    };
+
+    const getTaskRowClassName = (task: Task) => {
+        const dueDate = new Date(task.dueDate);
+        const today = new Date();
+        const threeDaysFromNow = new Date(today.getTime() + (3 * 24 * 60 * 60 * 1000));
+        
+        // Clear time to compare only dates
+        today.setHours(0, 0, 0, 0);
+        threeDaysFromNow.setHours(0, 0, 0, 0);
+        dueDate.setHours(0, 0, 0, 0);
+        
+        if (task.status !== 'completed') {
+            if (dueDate < today) {
+                return 'table-danger'; // Red for overdue
+            } else if (dueDate <= threeDaysFromNow) {
+                return 'table-warning'; // Yellow for due within 3 days
+            }
+        }
+        return '';
     };
 
     const renderTaskTable = () => {
@@ -293,7 +316,7 @@ export default function Overview() {
                 </thead>
                 <tbody>
                     {activeTasks.map(task => (
-                        <tr key={task._id}>
+                        <tr key={task._id} className={getTaskRowClassName(task)}>
                             <td>
                                 {task.title}
                                 {task.orderRelated && task.orderNumber && (
@@ -347,8 +370,18 @@ export default function Overview() {
         try {
             setMessagesLoading(true);
             const response = await messageService.getAll();
+            
+            // Filter messages based on user role
+            let filteredMessages = response.data as Message[];
+            
+            // Filter messages based on user role
+            if (currentUser && !['ADMIN', 'PMANAGER'].includes(currentUser.role)) {
+                // For non-admin users, show all messages since task/inventory messages are handled separately
+                filteredMessages = filteredMessages;
+            }
+            
             // Sort messages by postDate in descending order (newest first)
-            const sortedMessages = (response.data as Message[]).sort((a, b) => {
+            const sortedMessages = filteredMessages.sort((a, b) => {
                 return new Date(b.postDate || new Date()).getTime() -
                     new Date(a.postDate || new Date()).getTime();
             });
@@ -368,7 +401,7 @@ export default function Overview() {
         return date.toLocaleString();
     };
 
-    // Update the getMessageTypeBadge function to handle task-related messages
+    // Update the getMessageTypeBadge function to handle message types
     const getMessageTypeBadge = (type: string) => {
         switch (type) {
             case 'new order':
@@ -377,9 +410,6 @@ export default function Overview() {
                 return <Badge bg="info">订单状态变更</Badge>;
             case 'order update':
                 return <Badge bg="warning">订单更新</Badge>;
-            case 'task started':
-            case 'task completed':
-                return <Badge bg="primary">任务</Badge>;
             case 'others':
                 return <Badge bg="secondary">信息</Badge>;
             default:
@@ -442,7 +472,8 @@ export default function Overview() {
 
     return (
         <div className="container mt-4">
-
+            {/* Annual Task Summary - Only visible to ADMIN, PMANAGER, and MKT */}
+            <SummaryBadge />
 
             <Card className="mt-4">
                 <Card.Header className="d-flex justify-content-between align-items-center">

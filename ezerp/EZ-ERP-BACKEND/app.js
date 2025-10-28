@@ -11,6 +11,8 @@ import customerRoutes from './EZ-ERP/Customers/routes.js';
 import messageRoutes from './EZ-ERP/Messages/routes.js';
 import taskRoutes from './EZ-ERP/Tasks/routes.js';
 import userRoutes from './EZ-ERP/Users/routes.js';
+import itemRoutes from './EZ-ERP/Items/routes.js';
+import inventoryRecordRoutes from './EZ-ERP/InventoryRecord/routes.js';
 
 dotenv.config();
 
@@ -91,6 +93,8 @@ const startServer = async () => {
         app.use('/api/messages', messageRoutes);
         app.use('/api/tasks', taskRoutes);
         app.use('/api/users', userRoutes);
+        app.use('/api/items', itemRoutes);
+        app.use('/api/inventory-records', inventoryRecordRoutes);
 
         // Debug endpoints (enable by setting DEBUG=true)
         if (process.env.DEBUG === 'true') {

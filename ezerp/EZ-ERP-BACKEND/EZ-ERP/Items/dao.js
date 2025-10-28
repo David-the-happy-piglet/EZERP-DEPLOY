@@ -1,12 +1,21 @@
+import Item from './model.js';
+import { uploadImage } from '../utils/s3.js';
+import { v4 as uuidv4 } from 'uuid';
+
 class ItemDAO {
     async createItem(itemData) {
         try {
-            const item = new Item(itemData);
+            const item = new Item({ _id: itemData._id || uuidv4(), ...itemData });
+            if (itemData.imagePath) {
+                const image = await uploadImage(itemData.imagePath);
+                item.imagePath = image.key;
+            }
             return await item.save();
         } catch (error) {
             throw new Error(`Error creating item: ${error.message}`);
         }
     }
+    
     async getAllItems() {
         try {
             return await Item.find({}).sort({ createdAt: -1 });
@@ -35,11 +44,54 @@ class ItemDAO {
             throw new Error(`Error updating item: ${error.message}`);
         }
     }
+
+    async updateItemImage(id, imagePath) {
+        try {
+            const image = await uploadImage(imagePath);
+            return await Item.findByIdAndUpdate(id, { imagePath: image.key }, { new: true });
+        } catch (error) {
+            throw new Error(`Error updating item image: ${error.message}`);
+        }
+    }
+    async updateItemQuantity(id, quantity) {
+        try {
+            return await Item.findByIdAndUpdate(id, { quantity }, { new: true });
+        } catch (error) {
+            throw new Error(`Error updating item quantity: ${error.message}`);
+        }
+    }
     async deleteItem(id) {
         try {
             return await Item.findByIdAndDelete(id);
         } catch (error) {
             throw new Error(`Error deleting item: ${error.message}`);
+        }
+    }
+
+    // Get items with pagination
+    async getItemsPaginated(page = 1, limit = 10, filters = {}) {
+        try {
+            const skip = (page - 1) * limit;
+            const query = Item.find(filters)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit);
+
+            const records = await query.exec();
+            const total = await Item.countDocuments(filters);
+
+            return {
+                records,
+                pagination: {
+                    currentPage: page,
+                    totalPages: Math.ceil(total / limit),
+                    totalRecords: total,
+                    hasNextPage: page < Math.ceil(total / limit),
+                    hasPrevPage: page > 1
+                }
+            };
+        } catch (error) {
+            throw new Error(`Error fetching paginated items: ${error.message}`);
         }
     }
 }

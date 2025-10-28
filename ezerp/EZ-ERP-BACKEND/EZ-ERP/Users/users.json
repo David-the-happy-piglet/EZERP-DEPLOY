@@ -5,8 +5,6 @@
         "password": "123",
         "firstName": "David",
         "lastName": "Xu",
-        "email": "Davidthehappypiggy@gmail.com",
-        "dob": "2023-02-19",
         "role": "ADMIN"
     },
     {
@@ -15,8 +13,6 @@
         "password": "123",
         "firstName": "Wenjie",
         "lastName": "Liu",
-        "email": "Davidthehappypiggy@gmail.com",
-        "dob": "1992-12-14",
         "role": "MKT"
     }
 ]

@@ -8,6 +8,7 @@ import { FaHandshake } from "react-icons/fa";
 import { FaWarehouse } from "react-icons/fa";
 import { MdDashboard } from "react-icons/md";
 import { FaChartGantt } from "react-icons/fa6";
+import { MdInventory } from "react-icons/md";
 export default function MainPageNav() {
     const { pathname } = useLocation();
 
@@ -15,6 +16,7 @@ export default function MainPageNav() {
         { label: "总览", path: "/EZERP/Overview", icon: MdDashboard },
         { label: "项目管理", path: "/EZERP/PM", icon: FaChartGantt },
         { label: "订单", path: "/EZERP/Orders", icon: FaWarehouse },
+        { label: "库存", path: "/EZERP/Inventory", icon: MdInventory },
         { label: "客户", path: "/EZERP/Customers", icon: FaHandshake },
         { label: "财务", path: "/EZERP/Finance", icon: FaMoneyBillTransfer },
         { label: "账户", path: "/EZERP/Account", icon: MdManageAccounts },

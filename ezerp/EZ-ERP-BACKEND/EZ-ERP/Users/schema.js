@@ -3,12 +3,18 @@ import { v4 as uuidv4 } from 'uuid';
 
 export const UserRole = {
     ADMIN: 'ADMIN',
+    ASSISTANT: 'ASSISTANT',
     MKT: 'MKT',
+    PMANAGER: 'PMANAGER',
+    CUTTING: 'CUTTING',
     MACHINING: 'MACHINING',
     QC: 'QC',
-    CHEMIST: 'CHEMIST',
+    PLATING: 'PLATING',
+    TEMPERING: 'TEMPERING',
     FINANCE: 'FINANCE',
     HR: 'HR',
+    INVENTORY: 'INVENTORY',
+    OTHER: 'OTHER',
     GUEST: 'GUEST'
 };
 
@@ -37,17 +43,7 @@ export const userSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true,
-        lowercase: true
-    },
-    dob: {
-        type: Date,
-        required: true
-    },
+
     role: {
         type: String,
         enum: Object.values(UserRole),
@@ -72,4 +68,4 @@ userSchema.pre('save', function (next) {
     next();
 });
 
-export default mongoose.model('User', userSchema); 
+export default userSchema;

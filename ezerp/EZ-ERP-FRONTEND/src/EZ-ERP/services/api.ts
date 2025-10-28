@@ -51,8 +51,9 @@ export const authService = {
             }
         });
     },
-    register: (userData: { username: string; password: string; firstName: string; lastName: string; email: string; dob: string }) =>
+    register: (userData: { username: string; password: string; firstName: string; lastName: string; role?: string }) =>
         api.post('/auth/register', userData),
+    logout: () => api.post('/auth/logout'),
     changePassword: (data: { oldPassword: string; newPassword: string }) =>
         api.post('/auth/change-password', data),
     getCurrentUser: () => api.get('/auth/profile'),
@@ -63,15 +64,11 @@ export const authService = {
         password: string;
         firstName: string;
         lastName: string;
-        email: string;
-        dob: string;
         role: string;
     }) => api.post('/users', userData),
     updateUser: (id: string, userData: {
         firstName?: string;
         lastName?: string;
-        email?: string;
-        dob?: string;
         role?: string;
     }) => api.put(`/users/${id}`, userData),
     deleteUser: (id: string) => api.delete(`/users/${id}`),
@@ -86,50 +83,30 @@ export const orderService = {
     getByPaymentStatus: (paymentStatus: string) => api.get(`/orders/payment/${paymentStatus}`),
     create: (orderData: {
         orderNumber: string;
-        customer: {
-            _id: string;
-            companyName: string;
-            name: string;
-            email: string;
-            phone: string;
-            address: {
-                street: string;
-                city: string;
-                state: string;
-                country: string;
-                zipCode: string;
-            };
-        };
+        customerId: string;
+        description: string;
         items: Array<{
-            productId: string;
-            productName: string;
+            itemId: string;
             quantity: number;
             price: number;
         }>;
         totalAmount: number;
         status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
         paymentStatus: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
-        shippingAddress: {
-            street: string;
-            city: string;
-            state: string;
-            country: string;
-            zipCode: string;
-        };
+        shippingAddress: string;
         dueDate: string;
         notes?: string;
+        isRework?: boolean;
+        reworkReason?: string;
+        reworkOrderNumber?: string;
+        orderImage?: string;
     }) => api.post('/orders', orderData),
     update: (id: string, orderData: {
         orderNumber?: string;
-        customer?: {
-            _id?: string;
-            companyName?: string;
-            name?: string;
-            email?: string;
-        };
+        customerId?: string;
+        description?: string;
         items?: Array<{
-            productId?: string;
-            productName?: string;
+            itemId?: string;
             quantity?: number;
             price?: number;
         }>;
@@ -137,18 +114,16 @@ export const orderService = {
         status?: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
         paymentStatus?: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
         dueDate?: string;
-        shippingAddress?: {
-            street?: string;
-            city?: string;
-            state?: string;
-            country?: string;
-            zipCode?: string;
-        };
+        shippingAddress?: string;
         notes?: string;
+        isRework?: boolean;
+        reworkReason?: string;
+        reworkOrderNumber?: string;
+        orderImage?: string;
     }) => api.put(`/orders/${id}`, orderData),
-    updateStatus: (id: string, status: 'pending' | 'processing' | 'completed' | 'cancelled') =>
+    updateStatus: (id: string, status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED') =>
         api.patch(`/orders/${id}/status`, { status }),
-    updatePaymentStatus: (id: string, paymentStatus: 'pending' | 'paid' | 'overdue') =>
+    updatePaymentStatus: (id: string, paymentStatus: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED') =>
         api.patch(`/orders/${id}/payment`, { paymentStatus }),
     delete: (id: string) => api.delete(`/orders/${id}`),
 };
@@ -236,6 +211,62 @@ export const taskService = {
     }) => api.put(`/tasks/${id}`, taskData),
     markAsCompleted: (id: string) => api.patch(`/tasks/${id}/complete`),
     delete: (id: string) => api.delete(`/tasks/${id}`),
+};
+
+// Item Service
+export const itemService = {
+    getAll: () => api.get('/items'),
+    getById: (id: string) => api.get(`/items/${id}`),
+    getByOrderNumber: (orderNumber: string) => api.get(`/items/order/${orderNumber}`),
+    create: (itemData: {
+        name: string;
+        type: string;
+        quantity: number;
+        price?: number;
+        size?: string;
+        standard?: string;
+        description?: string;
+        orderNumber?: string;
+    }) => api.post('/items', itemData),
+    update: (id: string, itemData: {
+        name?: string;
+        type?: string;
+        quantity?: number;
+        price?: number;
+        size?: string;
+        standard?: string;
+        description?: string;
+    }) => api.put(`/items/${id}`, itemData),
+    updateQuantity: (id: string, quantity: number) => api.patch(`/items/${id}/quantity`, { quantity }),
+    delete: (id: string) => api.delete(`/items/${id}`),
+};
+
+// Inventory Record Service
+export const inventoryRecordService = {
+    getAll: () => api.get('/inventory-records'),
+    getById: (id: string) => api.get(`/inventory-records/${id}`),
+    getByItemId: (itemId: string) => api.get(`/inventory-records/item/${itemId}`),
+    getByType: (type: 'in' | 'out') => api.get(`/inventory-records/type/${type}`),
+    getByUser: (userId: string) => api.get(`/inventory-records/user/${userId}`),
+    getByDateRange: (startDate: string, endDate: string) => api.get(`/inventory-records/date-range/${startDate}/${endDate}`),
+    create: (recordData: {
+        items: Array<{
+            itemId: string;
+            quantity: number;
+        }>;
+        type: 'in' | 'out';
+        byUser: string;
+        description?: string;
+    }) => api.post('/inventory-records', recordData),
+    update: (id: string, recordData: {
+        quantity?: number;
+        type?: 'in' | 'out';
+        description?: string;
+        signed?: boolean;
+        signedBy?: string;
+    }) => api.put(`/inventory-records/${id}`, recordData),
+    sign: (id: string, signedBy: string) => api.patch(`/inventory-records/${id}/sign`, { signedBy }),
+    delete: (id: string) => api.delete(`/inventory-records/${id}`),
 };
 
 export default api; 

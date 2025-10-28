@@ -5,19 +5,11 @@ const router = express.Router();
 
 // Middleware to validate customer data
 const validateCustomerData = (req, res, next) => {
-    const { companyName, name, email, phone, address } = req.body;
+    const { companyName, name, department, position, phone, address } = req.body;
 
-    // Required fields validation
-    if (!companyName || !name) {
-        return res.status(400).json({ error: 'Company name and contact name are required' });
-    }
-
-    // Email format validation if provided
-    if (email) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return res.status(400).json({ error: 'Invalid email format' });
-        }
+    // Required fields validation based on schema
+    if (!companyName || !name || !department || !position) {
+        return res.status(400).json({ error: 'Company name, contact name, department, and position are required' });
     }
 
     // Phone format validation if provided
@@ -28,12 +20,9 @@ const validateCustomerData = (req, res, next) => {
         }
     }
 
-    // Address validation if provided
-    if (address) {
-        const { street, city, state, country, zipCode } = address;
-        if (street && !city) {
-            return res.status(400).json({ error: 'City is required when street address is provided' });
-        }
+    // Address validation - it's just a string in the schema
+    if (address && typeof address !== 'string') {
+        return res.status(400).json({ error: 'Address must be a string' });
     }
 
     next();

@@ -1,4 +1,3 @@
-import React from 'react';
 import type { Customer } from '../types';
 import { Button, Table } from 'react-bootstrap';
 

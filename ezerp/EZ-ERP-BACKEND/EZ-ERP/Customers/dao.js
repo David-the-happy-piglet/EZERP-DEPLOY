@@ -77,12 +77,31 @@ class CustomerDAO {
         }
     }
 
-    // Get customer by email
-    async getCustomerByEmail(email) {
+
+    // Get customers with pagination
+    async getCustomersPaginated(page = 1, limit = 10, filters = {}) {
         try {
-            return await Customer.findOne({ email: email.toLowerCase() });
+            const skip = (page - 1) * limit;
+            const query = Customer.find(filters)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit);
+
+            const records = await query.exec();
+            const total = await Customer.countDocuments(filters);
+
+            return {
+                records,
+                pagination: {
+                    currentPage: page,
+                    totalPages: Math.ceil(total / limit),
+                    totalRecords: total,
+                    hasNextPage: page < Math.ceil(total / limit),
+                    hasPrevPage: page > 1
+                }
+            };
         } catch (error) {
-            throw new Error(`Error finding customer by email: ${error.message}`);
+            throw new Error(`Error fetching paginated customers: ${error.message}`);
         }
     }
 }

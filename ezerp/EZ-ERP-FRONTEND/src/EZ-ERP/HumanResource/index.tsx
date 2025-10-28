@@ -6,12 +6,18 @@ import { authService } from '../services/api';
 
 export enum UserRole {
     ADMIN = 'ADMIN',
+    ASSISTANT = 'ASSISTANT',    
     MKT = 'MKT',
+    PMANAGER = 'PMANAGER',
+    CUTTING = 'CUTTING',
     MACHINING = 'MACHINING',
     QC = 'QC',
-    CHEMIST = 'CHEMIST',
+    PLATING = 'PLATING',
+    TEMPERING = 'TEMPERING',
     FINANCE = 'FINANCE',
     HR = 'HR',
+    INVENTORY = 'INVENTORY',
+    OTHER = 'OTHER',
     GUEST = 'GUEST'
 }
 
@@ -20,9 +26,7 @@ interface User {
     username: string;
     firstName: string;
     lastName: string;
-    email: string;
     role: UserRole;
-    dob: string;
 }
 
 interface UserFormData {
@@ -30,9 +34,7 @@ interface UserFormData {
     password?: string;
     firstName: string;
     lastName: string;
-    email: string;
     role: UserRole;
-    dob: string;
 }
 
 export default function HumanResource() {
@@ -48,9 +50,7 @@ export default function HumanResource() {
         password: '',
         firstName: '',
         lastName: '',
-        email: '',
-        role: UserRole.GUEST,
-        dob: ''
+        role: UserRole.GUEST
     });
 
     const currentUser = useSelector((state: any) => state.accountReducer?.currentUser);
@@ -81,7 +81,6 @@ export default function HumanResource() {
             filtered = filtered.filter(user =>
                 user.username.toLowerCase().includes(term) ||
                 `${user.firstName} ${user.lastName}`.toLowerCase().includes(term) ||
-                user.email.toLowerCase().includes(term) ||
                 user.role.toLowerCase().includes(term)
             );
         }
@@ -107,9 +106,7 @@ export default function HumanResource() {
                 password: '',
                 firstName: user.firstName,
                 lastName: user.lastName,
-                email: user.email,
-                role: user.role,
-                dob: user.dob
+                role: user.role
             });
         } else {
             setSelectedUser(null);
@@ -118,9 +115,7 @@ export default function HumanResource() {
                 password: '',
                 firstName: '',
                 lastName: '',
-                email: '',
-                role: UserRole.GUEST,
-                dob: ''
+                role: UserRole.GUEST
             });
         }
         setShowModal(true);
@@ -134,9 +129,7 @@ export default function HumanResource() {
             password: '',
             firstName: '',
             lastName: '',
-            email: '',
-            role: UserRole.GUEST,
-            dob: ''
+            role: UserRole.GUEST
         });
     };
 
@@ -144,11 +137,11 @@ export default function HumanResource() {
         e.preventDefault();
         try {
             if (selectedUser) {
-                const { password, dob, ...updateData } = formData;
+                const { password, ...updateData } = formData;
                 await authService.updateUser(selectedUser._id, updateData);
             } else {
-                if (!formData.password || !formData.dob) {
-                    setError('Password and Date of Birth are required for new users');
+                if (!formData.password) {
+                    setError('Password is required for new users');
                     return;
                 }
                 await authService.createUser({
@@ -156,9 +149,7 @@ export default function HumanResource() {
                     password: formData.password,
                     firstName: formData.firstName,
                     lastName: formData.lastName,
-                    email: formData.email,
-                    role: formData.role,
-                    dob: formData.dob
+                    role: formData.role
                 });
             }
             fetchUsers();
@@ -192,7 +183,7 @@ export default function HumanResource() {
                         <div className="d-flex gap-2">
                             <Form.Control
                                 type="text"
-                                placeholder="按用户名、姓名、邮箱或角色搜索..."
+                                placeholder="按用户名、姓名或角色搜索..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 style={{ width: '300px' }}
@@ -204,12 +195,18 @@ export default function HumanResource() {
                             >
                                 <option value="ALL">All Roles</option>
                                 <option value={UserRole.ADMIN}>管理员</option>
+                                <option value={UserRole.ASSISTANT}>助理</option>
                                 <option value={UserRole.MKT}>营销</option>
+                                <option value={UserRole.PMANAGER}>项目经理</option>
+                                <option value={UserRole.CUTTING}>切割</option>
                                 <option value={UserRole.MACHINING}>机加工</option>
                                 <option value={UserRole.QC}>质检</option>
-                                <option value={UserRole.CHEMIST}>镀金</option>
+                                <option value={UserRole.PLATING}>电镀</option>
+                                <option value={UserRole.TEMPERING}>热处理</option>
                                 <option value={UserRole.FINANCE}>财务</option>
                                 <option value={UserRole.HR}>人力资源</option>
+                                <option value={UserRole.INVENTORY}>仓库管理</option>
+                                <option value={UserRole.OTHER}>其他</option>
                                 <option value={UserRole.GUEST}>访客</option>
                             </Form.Select>
                         </div>
@@ -226,7 +223,6 @@ export default function HumanResource() {
                                 <tr>
                                     <th>用户名</th>
                                     <th>姓名</th>
-                                    <th>邮箱</th>
                                     <th>角色</th>
                                     {canManageUsers && <th>操作</th>}
                                 </tr>
@@ -236,7 +232,6 @@ export default function HumanResource() {
                                     <tr key={user._id}>
                                         <td>{user.username}</td>
                                         <td>{`${user.firstName} ${user.lastName}`}</td>
-                                        <td>{user.email}</td>
                                         <td>{user.role}</td>
                                         {canManageUsers && (
                                             <td>
@@ -316,17 +311,6 @@ export default function HumanResource() {
                         <Row>
                             <Col md={6}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>邮箱</Form.Label>
-                                    <Form.Control
-                                        type="email"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        required
-                                    />
-                                </Form.Group>
-                            </Col>
-                            <Col md={6}>
-                                <Form.Group className="mb-3">
                                     <Form.Label>角色</Form.Label>
                                     <Form.Select
                                         value={formData.role}
@@ -334,33 +318,23 @@ export default function HumanResource() {
                                         required
                                     >
                                         <option value={UserRole.ADMIN}>管理员</option>
+                                        <option value={UserRole.ASSISTANT}>助理</option>
                                         <option value={UserRole.MKT}>营销</option>
+                                        <option value={UserRole.PMANAGER}>生产部长</option>
+                                        <option value={UserRole.CUTTING}>线切割</option>
                                         <option value={UserRole.MACHINING}>机加工</option>
                                         <option value={UserRole.QC}>质检</option>
-                                        <option value={UserRole.CHEMIST}>镀金</option>
+                                        <option value={UserRole.PLATING}>电镀</option>
+                                        <option value={UserRole.TEMPERING}>热处理</option>
                                         <option value={UserRole.FINANCE}>财务</option>
                                         <option value={UserRole.HR}>人力资源</option>
+                                        <option value={UserRole.INVENTORY}>仓库管理</option>
+                                        <option value={UserRole.OTHER}>其他</option>
                                         <option value={UserRole.GUEST}>访客</option>
                                     </Form.Select>
                                 </Form.Group>
                             </Col>
                         </Row>
-
-                        {!selectedUser && (
-                            <Row>
-                                <Col md={6}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Label>出生日期</Form.Label>
-                                        <Form.Control
-                                            type="date"
-                                            value={formData.dob}
-                                            onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                                            required
-                                        />
-                                    </Form.Group>
-                                </Col>
-                            </Row>
-                        )}
 
                         <div className="d-flex justify-content-end">
                             <Button variant="secondary" className="me-2" onClick={handleCloseModal}>

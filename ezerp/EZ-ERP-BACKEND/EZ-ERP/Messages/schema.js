@@ -17,7 +17,7 @@ const messageSchema = new mongoose.Schema({
     messageType: {
         type: String,
         required: true,
-        enum: ['new order', 'order status change', 'order update', 'others', 'task started', 'task completed'],
+        enum: ['new order', 'order status change', 'order update', 'others', 'task started', 'task completed', 'inventory record'],
         trim: true
     },
     messageTitle: {

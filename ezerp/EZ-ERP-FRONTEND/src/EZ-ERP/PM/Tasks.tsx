@@ -19,6 +19,19 @@ interface Task {
     priority: 'low' | 'medium' | 'high';
     orderRelated: boolean;
     orderNumber: string;
+    progressDetails?: Array<{
+        date: string;
+        description: string;
+    }>;
+    items?: Array<{
+        itemId: string;
+        quantity: number;
+    }>;
+    typeI?: 'cutting' | 'machining' | 'plating' | 'QC' | 'tempering' | 'shipping' | 'other';
+    typeII?: 'rework' | 'add-on';
+    outsourcing?: boolean;
+    outsourcingCompany?: string;
+    outsourcingContact?: string;
 }
 
 interface User {
@@ -32,6 +45,7 @@ export default function Tasks() {
     const navigate = useNavigate();
     const currentUser = useSelector((state: any) => state.accountReducer?.currentUser);
     const isAdmin = hasAnyRole(currentUser, Role.ADMIN);
+    const canCreateTask = currentUser && ['ADMIN', 'PMANAGER'].includes(currentUser.role);
 
     const [tasks, setTasks] = useState<Task[]>([]);
     const [users, setUsers] = useState<User[]>([]);
@@ -53,7 +67,14 @@ export default function Tasks() {
         priority: 'medium',
         status: 'pending',
         orderRelated: true,
-        orderNumber: orderNumber
+        orderNumber: orderNumber,
+        typeI: undefined,
+        typeII: undefined,
+        outsourcing: false,
+        outsourcingCompany: '',
+        outsourcingContact: '',
+        items: [],
+        progressDetails: []
     });
 
     // For delete confirmation modal
@@ -95,7 +116,14 @@ export default function Tasks() {
             priority: 'medium',
             status: 'pending',
             orderRelated: true,
-            orderNumber: orderNumber
+            orderNumber: orderNumber,
+            typeI: undefined,
+            typeII: undefined,
+            outsourcing: false,
+            outsourcingCompany: '',
+            outsourcingContact: '',
+            items: [],
+            progressDetails: []
         });
         setIsEditing(false);
         setShowTaskModal(true);
@@ -147,7 +175,14 @@ export default function Tasks() {
                 status: formData.status as 'pending' | 'in progress' | 'completed',
                 priority: formData.priority as 'low' | 'medium' | 'high',
                 orderRelated: true,
-                orderNumber: orderNumber
+                orderNumber: orderNumber,
+                typeI: formData.typeI,
+                typeII: formData.typeII,
+                outsourcing: formData.outsourcing || false,
+                outsourcingCompany: formData.outsourcingCompany,
+                outsourcingContact: formData.outsourcingContact,
+                items: formData.items || [],
+                progressDetails: formData.progressDetails || []
             };
 
             console.log('Creating task with payload:', payload);
@@ -219,6 +254,26 @@ export default function Tasks() {
         }
     };
 
+    const getTaskRowClassName = (task: Task) => {
+        const dueDate = new Date(task.dueDate);
+        const today = new Date();
+        const threeDaysFromNow = new Date(today.getTime() + (3 * 24 * 60 * 60 * 1000));
+        
+        // Clear time to compare only dates
+        today.setHours(0, 0, 0, 0);
+        threeDaysFromNow.setHours(0, 0, 0, 0);
+        dueDate.setHours(0, 0, 0, 0);
+        
+        if (task.status !== 'completed') {
+            if (dueDate < today) {
+                return 'table-danger'; // Red for overdue
+            } else if (dueDate <= threeDaysFromNow) {
+                return 'table-warning'; // Yellow for due within 3 days
+            }
+        }
+        return '';
+    };
+
     if (loading && tasks.length === 0) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ height: '50vh' }}>
@@ -235,7 +290,7 @@ export default function Tasks() {
                     <Button variant="secondary" className="me-2" onClick={() => navigate('/EZERP/PM')}>
                         返回项目管理
                     </Button>
-                    {isAdmin && (
+                    {canCreateTask && (
                         <Button variant="primary" onClick={handleCreateTask}>
                             创建新任务
                         </Button>
@@ -256,6 +311,9 @@ export default function Tasks() {
                             <thead>
                                 <tr>
                                     <th>标题</th>
+                                    <th>类型I</th>
+                                    <th>类型II</th>
+                                    <th>外协</th>
                                     <th>来自</th>
                                     <th>指派给</th>
                                     <th>创建时间</th>
@@ -267,8 +325,32 @@ export default function Tasks() {
                             </thead>
                             <tbody>
                                 {tasks.map(task => (
-                                    <tr key={task._id}>
+                                    <tr key={task._id} className={getTaskRowClassName(task)}>
                                         <td>{task.title}</td>
+                                        <td>
+                                            {task.typeI ? (
+                                                <Badge bg="info">
+                                                    {task.typeI === 'cutting' ? '线切割' :
+                                                     task.typeI === 'machining' ? '机加工' :
+                                                     task.typeI === 'plating' ? '电镀' :
+                                                     task.typeI === 'QC' ? '质检' :
+                                                     task.typeI === 'tempering' ? '热处理' :
+                                                     task.typeI === 'shipping' ? '发货' : '其他'}
+                                                </Badge>
+                                            ) : '-'}
+                                        </td>
+                                        <td>
+                                            {task.typeII ? (
+                                                <Badge bg="secondary">
+                                                    {task.typeII === 'rework' ? '返工' : '补货'}
+                                                </Badge>
+                                            ) : '-'}
+                                        </td>
+                                        <td>
+                                            {task.outsourcing ? (
+                                                <Badge bg="warning">外协</Badge>
+                                            ) : '-'}
+                                        </td>
                                         <td>{getUserName(task.assignedBy)}</td>
                                         <td>{getUserName(task.assignedTo)}</td>
                                         <td>{new Date(task.postDate).toLocaleDateString()}</td>
@@ -340,6 +422,53 @@ export default function Tasks() {
                             <p><strong>截止日期:</strong> {new Date(selectedTask.dueDate).toLocaleString()}</p>
                             <p><strong>状态:</strong> {getStatusBadge(selectedTask.status)}</p>
                             <p><strong>优先级:</strong> {getPriorityBadge(selectedTask.priority)}</p>
+                            
+                            {selectedTask.typeI && (
+                                <p><strong>任务类型I:</strong> 
+                                    <Badge bg="info" className="ms-2">
+                                        {selectedTask.typeI === 'cutting' ? '线切割' :
+                                         selectedTask.typeI === 'machining' ? '机加工' :
+                                         selectedTask.typeI === 'plating' ? '电镀' :
+                                         selectedTask.typeI === 'QC' ? '质检' :
+                                         selectedTask.typeI === 'tempering' ? '热处理' :
+                                         selectedTask.typeI === 'shipping' ? '发货' : '其他'}
+                                    </Badge>
+                                </p>
+                            )}
+                            
+                            {selectedTask.typeII && (
+                                <p><strong>任务类型II:</strong> 
+                                    <Badge bg="secondary" className="ms-2">
+                                        {selectedTask.typeII === 'rework' ? '返工' : '补货'}
+                                    </Badge>
+                                </p>
+                            )}
+                            
+                            {selectedTask.outsourcing && (
+                                <>
+                                    <p><strong>外协任务:</strong> <Badge bg="warning">是</Badge></p>
+                                    {selectedTask.outsourcingCompany && (
+                                        <p><strong>外协公司:</strong> {selectedTask.outsourcingCompany}</p>
+                                    )}
+                                    {selectedTask.outsourcingContact && (
+                                        <p><strong>外协联系方式:</strong> {selectedTask.outsourcingContact}</p>
+                                    )}
+                                </>
+                            )}
+                            
+                            {selectedTask.progressDetails && selectedTask.progressDetails.length > 0 && (
+                                <>
+                                    <h5>进度详情</h5>
+                                    {selectedTask.progressDetails.map((detail, index) => (
+                                        <div key={index} className="border p-2 mb-2 rounded">
+                                            <small className="text-muted">
+                                                {new Date(detail.date).toLocaleString()}
+                                            </small>
+                                            <p className="mb-0">{detail.description}</p>
+                                        </div>
+                                    ))}
+                                </>
+                            )}
                         </>
                     )}
                 </Modal.Body>
@@ -420,6 +549,74 @@ export default function Tasks() {
                                 <option value="high">High</option>
                             </Form.Select>
                         </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>任务类型I*</Form.Label>
+                            <Form.Select
+                                name="typeI"
+                                value={formData.typeI || ''}
+                                onChange={handleFormChange}
+                                required
+                            >
+                                <option value="">选择任务类型</option>
+                                <option value="cutting">线切割</option>
+                                <option value="machining">机加工</option>
+                                <option value="plating">电镀</option>
+                                <option value="QC">质检</option>
+                                <option value="tempering">热处理</option>
+                                <option value="shipping">发货</option>
+                                <option value="other">其他</option>
+                            </Form.Select>
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>任务类型II</Form.Label>
+                            <Form.Select
+                                name="typeII"
+                                value={formData.typeII || ''}
+                                onChange={handleFormChange}
+                            >
+                                <option value="">选择类型II</option>
+                                <option value="rework">返工</option>
+                                <option value="add-on">补货</option>
+                            </Form.Select>
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Check
+                                type="checkbox"
+                                name="outsourcing"
+                                label="外协任务"
+                                checked={formData.outsourcing || false}
+                                onChange={(e) => setFormData({ ...formData, outsourcing: e.target.checked })}
+                            />
+                        </Form.Group>
+
+                        {formData.outsourcing && (
+                            <>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>外包公司</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        name="outsourcingCompany"
+                                        value={formData.outsourcingCompany || ''}
+                                        onChange={handleFormChange}
+                                        placeholder="请输入外协公司名称"
+                                    />
+                                </Form.Group>
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label>外协联系方式</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        name="outsourcingContact"
+                                        value={formData.outsourcingContact || ''}
+                                        onChange={handleFormChange}
+                                        placeholder="请输入联系方式"
+                                    />
+                                </Form.Group>
+                            </>
+                        )}
 
                         {isEditing && (
                             <Form.Group className="mb-3">

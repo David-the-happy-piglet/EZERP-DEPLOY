@@ -1,13 +1,11 @@
 import User from './model.js';
-import { v4 as uuidv4 } from 'uuid';
 
 class UserDAO {
     // Create a new user
     async createUser(userData) {
         try {
             const user = new User({
-                ...userData,
-                _id: uuidv4()
+                ...userData
             });
             return await user.save();
         } catch (error) {
@@ -30,15 +28,6 @@ class UserDAO {
             return await User.findOne({ username });
         } catch (error) {
             throw new Error(`Error finding user by username: ${error.message}`);
-        }
-    }
-
-    // Get user by email
-    async getUserByEmail(email) {
-        try {
-            return await User.findOne({ email: email.toLowerCase() });
-        } catch (error) {
-            throw new Error(`Error finding user by email: ${error.message}`);
         }
     }
 
@@ -92,6 +81,33 @@ class UserDAO {
             );
         } catch (error) {
             throw new Error(`Error updating user password: ${error.message}`);
+        }
+    }
+
+    // Get users with pagination
+    async getUsersPaginated(page = 1, limit = 10, filters = {}) {
+        try {
+            const skip = (page - 1) * limit;
+            const query = User.find(filters)
+                .sort({ createdAt: -1 })
+                .skip(skip)
+                .limit(limit);
+
+            const records = await query.exec();
+            const total = await User.countDocuments(filters);
+
+            return {
+                records,
+                pagination: {
+                    currentPage: page,
+                    totalPages: Math.ceil(total / limit),
+                    totalRecords: total,
+                    hasNextPage: page < Math.ceil(total / limit),
+                    hasPrevPage: page > 1
+                }
+            };
+        } catch (error) {
+            throw new Error(`Error fetching paginated users: ${error.message}`);
         }
     }
 }

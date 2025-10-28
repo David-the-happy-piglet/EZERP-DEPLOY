@@ -105,7 +105,7 @@ export default function OrderTable({ onOrderClick, onCreateOrder, canManageOrder
                                 <ul className="list-unstyled mb-0">
                                     {order.items.map((item: Order['items'][0], index: number) => (
                                         <li key={index}>
-                                            {item.productName} ({item.quantity})
+                                            {item.itemId} ({item.quantity})
                                         </li>
                                     ))}
                                 </ul>
