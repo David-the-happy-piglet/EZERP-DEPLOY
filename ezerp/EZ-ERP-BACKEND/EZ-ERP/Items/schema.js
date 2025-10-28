@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import orderSchema from '../Orders/schema';
+// Removed unused import of order schema to avoid ESM resolution errors in Docker
 
 export const itemType = {
     PRODUCT: 'PRODUCT',
@@ -54,3 +54,5 @@ const itemSchema = new mongoose.Schema({
         type: String,
     }
 });
+
+export default itemSchema;

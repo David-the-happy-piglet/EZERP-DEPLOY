@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 
-
 // User roles enum
 
 
