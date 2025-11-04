@@ -1,15 +1,11 @@
 import Item from './model.js';
-import { uploadImage } from '../utils/s3.js';
+import { getUploadUrlPut } from '../utils/s3.js';
 import { v4 as uuidv4 } from 'uuid';
 
 class ItemDAO {
     async createItem(itemData) {
         try {
             const item = new Item({ _id: itemData._id || uuidv4(), ...itemData });
-            if (itemData.imagePath) {
-                const image = await uploadImage(itemData.imagePath);
-                item.imagePath = image.key;
-            }
             return await item.save();
         } catch (error) {
             throw new Error(`Error creating item: ${error.message}`);
@@ -47,8 +43,7 @@ class ItemDAO {
 
     async updateItemImage(id, imagePath) {
         try {
-            const image = await uploadImage(imagePath);
-            return await Item.findByIdAndUpdate(id, { imagePath: image.key }, { new: true });
+            return await Item.findByIdAndUpdate(id, { imagePath: imagePath }, { new: true });
         } catch (error) {
             throw new Error(`Error updating item image: ${error.message}`);
         }

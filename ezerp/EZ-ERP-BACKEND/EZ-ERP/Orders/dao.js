@@ -1,6 +1,5 @@
 import Order from './model.js';
 import { OrderStatus, PaymentStatus } from './schema.js';
-import { uploadImage } from '../utils/s3.js';
 import { v4 as uuidv4 } from 'uuid';
 
 class OrderDAO {
@@ -29,9 +28,6 @@ class OrderDAO {
                         throw new Error(`Error creating item: ${error.message}`);
                     }
                 }
-            }
-            if (orderData.orderImagePath) {
-                orderData.orderImage = (await uploadImage(orderData.orderImagePath)).key;
             }
             // Validate each item
             const order = new Order({
@@ -155,10 +151,9 @@ class OrderDAO {
 
     async updateOrderImage(id, imagePath) {
         try {
-            image = await uploadImage(imagePath);
             const order = await Order.findByIdAndUpdate(
                 id,
-                { orderImage: image.key },
+                { orderImage: imagePath },
                 { new: true }
             );
             return order;

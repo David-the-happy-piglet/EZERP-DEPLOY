@@ -3,11 +3,15 @@ import bcrypt from 'bcryptjs';
 import UserDAO from './dao.js';
 import { UserRole } from './schema.js';
 import { verifySession } from '../middleware/auth.js';
+import { isHR, isRoleOrOwner } from '../middleware/roleVerify.js';
 
 const router = express.Router();
 
+// Require an authenticated session for all user routes
+router.use(verifySession);
+
 // User management routes
-router.get('/', verifySession, async (req, res) => {
+router.get('/', async (req, res) => {
     try {
         const users = await UserDAO.getAllUsers();
         // Remove sensitive data before sending
@@ -27,13 +31,8 @@ router.get('/', verifySession, async (req, res) => {
     }
 });
 
-router.post('/', verifySession, async (req, res) => {
+router.post('/', verifySession, isHR, async (req, res) => {
     try {
-        // Check if user is admin or HR
-        if (req.session.user.role !== UserRole.ADMIN && req.session.user.role !== UserRole.HR) {
-            return res.status(403).json({ message: 'Unauthorized' });
-        }
-
         const { username, password, firstName, lastName, role } = req.body;
 
         // Check if username already exists
@@ -67,17 +66,10 @@ router.post('/', verifySession, async (req, res) => {
     }
 });
 
-router.put('/:id', verifySession, async (req, res) => {
+router.put('/:id', isRoleOrOwner([UserRole.HR, UserRole.ADMIN]), async (req, res) => {
     try {
         const userId = req.params.id;
         const updateData = req.body;
-
-        // Check if user is admin, HR, or updating their own profile
-        if (req.session.user.role !== UserRole.ADMIN &&
-            req.session.user.role !== UserRole.HR &&
-            req.session.user.id !== userId) {
-            return res.status(403).json({ message: 'Unauthorized' });
-        }
 
         // Don't allow updating password through this route
         if (updateData.password) {
@@ -95,7 +87,7 @@ router.put('/:id', verifySession, async (req, res) => {
     }
 });
 
-router.delete('/:id', verifySession, async (req, res) => {
+router.delete('/:id', async (req, res) => {
     try {
         const userId = req.params.id;
 

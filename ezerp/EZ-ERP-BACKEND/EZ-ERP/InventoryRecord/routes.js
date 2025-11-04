@@ -1,8 +1,12 @@
 import express from 'express';
 import inventoryRecordDAO from './dao.js';
 import itemDAO from '../Items/dao.js';
+import { verifySession } from '../middleware/auth.js';
 
 const router = express.Router();
+
+// Require an authenticated session for all inventory record routes
+router.use(verifySession);
 
 // Create a new inventory record
 router.post('/', async (req, res) => {

@@ -1,4 +1,4 @@
-import { UserRole } from '../User/schema.js';
+import { UserRole } from '../Users/schema.js';
 
 /**
  * Middleware to verify if a user has the required role to access a route
@@ -149,5 +149,27 @@ export const isOwner = (getIdFromParams = (req) => req.params.id) => {
 
         // User is accessing their own data or is an admin, proceed
         next();
+    };
+};
+
+/**
+ * Allow access if the user's role is in allowedRoles OR the user owns the resource.
+ */
+export const isRoleOrOwner = (allowedRoles, getIdFromParams = (req) => req.params.id) => {
+    return (req, res, next) => {
+        if (!req.session.user) {
+            return res.status(401).json({ error: 'Unauthorized: No user found in session' });
+        }
+
+        const userRole = req.session.user.role;
+        const isAllowedRole = allowedRoles.includes(userRole) || userRole === UserRole.ADMIN;
+        const resourceId = getIdFromParams(req);
+        const isOwnerUser = req.session.user.id === resourceId;
+
+        if (isAllowedRole || isOwnerUser) {
+            return next();
+        }
+
+        return res.status(403).json({ error: 'Forbidden: Insufficient permissions' });
     };
 };

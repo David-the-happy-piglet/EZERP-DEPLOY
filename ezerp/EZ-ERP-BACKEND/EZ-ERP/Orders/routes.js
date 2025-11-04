@@ -1,8 +1,14 @@
 import express from 'express';
 import orderDAO from './dao.js';
+import taskDAO from '../Tasks/dao.js';
+import inventoryRecordDAO from '../InventoryRecord/dao.js';
 import { OrderStatus, PaymentStatus } from './schema.js';
 import { getImageUrl } from '../utils/s3.js';
+import { verifySession } from '../middleware/auth.js';
 const router = express.Router();
+
+// Require an authenticated session for all order routes
+router.use(verifySession);
 
 // Middleware to validate order data
 const validateOrderData = (req, res, next) => {
@@ -132,6 +138,17 @@ router.get('/image/:id', async (req, res) => {
         res.status(500).json({ message: 'Error fetching order image', error: error.message });
     }
 });
+
+router.get('/progress/:id', async (req, res) => {
+    try {
+        const tasks = await taskDAO.getTasksByOrderNumber(req.params.id);
+        const totalItems = tasks.reduce((acc, task) => acc + task.items.reduce((acc, item) => acc + item.quantity, 0), 0);
+        const finishedItems = tasks.reduce((acc, task) => acc + task.items.find(item => item.status === 'completed').reduce((acc, item) => acc + item.quantity, 0), 0);
+        res.status(200).json({ totalItems, finishedItems, progress: finishedItems / totalItems * 100 });
+    } catch (error) {
+        res.status(500).json({ message: 'Error fetching order progress', error: error.message });
+    }
+})
 
 // Update order
 router.put('/:id', validateOrderData, async (req, res) => {

@@ -1,7 +1,11 @@
 import express from 'express';
 import customerDAO from './dao.js';
+import { verifySession } from '../middleware/auth.js';
 
 const router = express.Router();
+
+// Require an authenticated session for all customer routes
+router.use(verifySession);
 
 // Middleware to validate customer data
 const validateCustomerData = (req, res, next) => {

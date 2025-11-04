@@ -1,7 +1,12 @@
 import express from 'express';
 import taskDAO from './dao.js';
+import { verifySession } from '../middleware/auth.js';
+
 
 const router = express.Router();
+
+// Require an authenticated session for all task routes
+router.use(verifySession);
 
 // Middleware to validate task data
 const validateTaskData = (req, res, next) => {
@@ -45,7 +50,7 @@ const validateTaskData = (req, res, next) => {
 };
 
 // Create a new task
-router.post('/', validateTaskData, async (req, res) => {
+router.post('/', verifySession, validateTaskData, async (req, res) => {
     try {
         const task = await taskDAO.createTask(req.body);
         res.status(201).json(task);
@@ -59,7 +64,7 @@ router.post('/', validateTaskData, async (req, res) => {
 });
 
 // Get all tasks
-router.get('/', async (req, res) => {
+router.get('/', verifySession, async (req, res) => {
     try {
         const tasks = await taskDAO.getAllTasks();
         res.json(tasks);
@@ -69,7 +74,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get task by ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', verifySession, async (req, res) => {
     try {
         const task = await taskDAO.getTaskById(req.params.id);
         if (!task) {
@@ -82,7 +87,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Get tasks by status
-router.get('/status/:status', async (req, res) => {
+router.get('/status/:status', verifySession, async (req, res) => {
     try {
         const tasks = await taskDAO.getTasksByStatus(req.params.status);
         res.json(tasks);
@@ -92,7 +97,7 @@ router.get('/status/:status', async (req, res) => {
 });
 
 // Get tasks by priority
-router.get('/priority/:priority', async (req, res) => {
+router.get('/priority/:priority', verifySession, async (req, res) => {
     try {
         const tasks = await taskDAO.getTasksByPriority(req.params.priority);
         res.json(tasks);
@@ -102,7 +107,7 @@ router.get('/priority/:priority', async (req, res) => {
 });
 
 // Get tasks by assignee
-router.get('/assignee/:assignedTo', async (req, res) => {
+router.get('/assignee/:assignedTo', verifySession, async (req, res) => {
     try {
         const tasks = await taskDAO.getTasksByAssignee(req.params.assignedTo);
         res.json(tasks);
@@ -112,7 +117,7 @@ router.get('/assignee/:assignedTo', async (req, res) => {
 });
 
 // Get tasks by order number
-router.get('/order/:orderNumber', async (req, res) => {
+router.get('/order/:orderNumber', verifySession, async (req, res) => {
     try {
         const tasks = await taskDAO.getTasksByOrderNumber(req.params.orderNumber);
         res.json(tasks);
@@ -121,8 +126,10 @@ router.get('/order/:orderNumber', async (req, res) => {
     }
 });
 
+
+
 // Update task
-router.put('/:id', validateTaskData, async (req, res) => {
+router.put('/:id', verifySession, validateTaskData, async (req, res) => {
     try {
         const task = await taskDAO.updateTask(req.params.id, req.body);
         if (!task) {
@@ -135,7 +142,7 @@ router.put('/:id', validateTaskData, async (req, res) => {
 });
 
 // Mark task as completed
-router.patch('/:id/complete', async (req, res) => {
+router.patch('/:id/complete', verifySession, async (req, res) => {
     try {
         const task = await taskDAO.markTaskAsCompleted(req.params.id);
         if (!task) {
@@ -148,7 +155,7 @@ router.patch('/:id/complete', async (req, res) => {
 });
 
 // Delete task
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verifySession, async (req, res) => {
     try {
         const task = await taskDAO.deleteTask(req.params.id);
         if (!task) {

@@ -1,9 +1,13 @@
 import express from 'express';
 import itemDAO from './dao.js';
-import { uploadImage , getImageUrl} from '../utils/s3.js';
+import {getImageUrl} from '../utils/s3.js';
+import { verifySession } from '../middleware/auth.js';
 
 
 const router = express.Router();
+
+// Require an authenticated session for all item routes
+router.use(verifySession);
 
 // Middleware to validate item data
 const validateItemData = (req, res, next) => {

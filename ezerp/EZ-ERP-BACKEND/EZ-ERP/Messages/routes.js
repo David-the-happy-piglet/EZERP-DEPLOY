@@ -1,7 +1,11 @@
 import express from 'express';
 import messageDAO from './dao.js';
+import { verifySession } from '../middleware/auth.js';
 
 const router = express.Router();
+
+// Require an authenticated session for all message routes
+router.use(verifySession);
 
 // Middleware to validate message data
 const validateMessageData = (req, res, next) => {

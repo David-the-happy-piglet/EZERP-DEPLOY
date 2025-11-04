@@ -23,40 +23,13 @@ const s3 = new S3Client({
     }
 });
 
-
-
-export async function uploadImage(localFilePath) {
-    if (!localFilePath) {
-        throw new Error('uploadImage: localFilePath is required');
+export async function getUploadUrlPut({ key, contentType = 'application/octet-stream', expiresIn = 600 }) {
+    if (!key) {
+        throw new Error('getUploadUrlPut: key is required');
     }
-
-    const fileExists = fs.existsSync(localFilePath);
-    if (!fileExists) {
-        throw new Error(`uploadImage: file not found at ${localFilePath}`);
-    }
-
-    const fileStream = fs.createReadStream(localFilePath);
-    const fileName = path.basename(localFilePath);
-    const contentType = mime.lookup(fileName) || 'application/octet-stream';
-    const key = `items/${Date.now()}-${fileName}`;
-
-    const command = new PutObjectCommand({
-        Bucket: bucket,
-        Key: key,
-        Body: fileStream,
-        ContentType: contentType
-    });
-
-    await s3.send(command);
-
-    // Build URL differently for custom endpoints (MinIO) vs AWS S3
-    let url;
-    const cmd = new GetObjectCommand({
-        Bucket: bucket,
-        Key: key
-    });
-    url = await getSignedUrl(s3, cmd, { expiresIn: 600 });
-    return { key, url };
+    const cmd = new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: contentType });
+    const url = await getSignedUrl(s3, cmd, { expiresIn });
+    return { url, key, expiresIn, method: 'PUT', headers: { 'Content-Type': contentType } };
 }
 
 export async function getImageUrl(key) {
@@ -68,7 +41,8 @@ export async function getImageUrl(key) {
 }
 
 export default {
-    uploadImage
+    getUploadUrlPut,
+    getImageUrl
 };
 
 
