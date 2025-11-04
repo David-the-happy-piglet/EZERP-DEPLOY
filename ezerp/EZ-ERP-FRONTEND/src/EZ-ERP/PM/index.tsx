@@ -437,11 +437,11 @@ export default function ProjectManagement() {
                                                     value={order.status}
                                                     onChange={(e) => handleStatusChange(order._id, e.target.value)}
                                                 >
+                                                    <option value="BIDDING">投标中</option>
                                                     <option value="PENDING">待处理</option>
                                                     <option value="PROCESSING">处理中</option>
-                                                    <option value="SHIPPED">已发货</option>
-                                                    <option value="DELIVERED">已交付</option>
                                                     <option value="CANCELLED">已取消</option>
+                                                    <option value="COMPLETED">已完成</option>
                                                 </Form.Select>
                                             ) : (
                                                 order.status

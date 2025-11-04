@@ -91,7 +91,7 @@ export const orderService = {
             price: number;
         }>;
         totalAmount: number;
-        status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+        status: 'BIDDING' | 'PENDING' | 'PROCESSING' | 'CANCELLED' | 'COMPLETED';
         paymentStatus: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
         shippingAddress: string;
         dueDate: string;
@@ -111,7 +111,7 @@ export const orderService = {
             price?: number;
         }>;
         totalAmount?: number;
-        status?: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+        status?: 'BIDDING' | 'PENDING' | 'PROCESSING' | 'CANCELLED' | 'COMPLETED';
         paymentStatus?: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
         dueDate?: string;
         shippingAddress?: string;
@@ -121,10 +121,18 @@ export const orderService = {
         reworkOrderNumber?: string;
         orderImage?: string;
     }) => api.put(`/orders/${id}`, orderData),
-    updateStatus: (id: string, status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED') =>
+    updateStatus: (id: string, status: 'BIDDING' | 'PENDING' | 'PROCESSING' | 'CANCELLED' | 'COMPLETED') =>
         api.patch(`/orders/${id}/status`, { status }),
     updatePaymentStatus: (id: string, paymentStatus: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED') =>
         api.patch(`/orders/${id}/payment`, { paymentStatus }),
+    uploadImage: (id: string, file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return api.post(`/orders/${id}/upload-image`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    },
+    getImageUrl: (id: string) => api.get(`/orders/image/${id}`),
     delete: (id: string) => api.delete(`/orders/${id}`),
 };
 
@@ -238,6 +246,14 @@ export const itemService = {
         description?: string;
     }) => api.put(`/items/${id}`, itemData),
     updateQuantity: (id: string, quantity: number) => api.patch(`/items/${id}/quantity`, { quantity }),
+    uploadImage: (id: string, file: File) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return api.post(`/items/${id}/upload-image`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    },
+    getImageUrl: (id: string) => api.get(`/items/image/${id}`),
     delete: (id: string) => api.delete(`/items/${id}`),
 };
 

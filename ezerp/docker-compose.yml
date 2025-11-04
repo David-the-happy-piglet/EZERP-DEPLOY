@@ -1,8 +1,6 @@
-version: "3.9"
-
 services:
   mongo:
-    image: mongo:6
+    image: mongo:7
     container_name: ez-erp-mongo
     restart: unless-stopped
     environment:
@@ -33,6 +31,8 @@ services:
   backend:
     build:
       context: ./EZ-ERP-BACKEND
+      dockerfile: Dockerfile
+    image: ezerp-backend:latest
     container_name: ez-erp-backend
     env_file: ./.env
     environment:
@@ -59,8 +59,10 @@ services:
   frontend:
     build:
       context: ./EZ-ERP-FRONTEND
+      dockerfile: Dockerfile
       args:
         - VITE_API_URL=${VITE_API_URL}
+    image: ezerp-frontend:latest
     container_name: ez-erp-frontend
     ports:
       - "${FRONTEND_PORT}:80"

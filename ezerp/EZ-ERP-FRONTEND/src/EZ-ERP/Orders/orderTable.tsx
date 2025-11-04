@@ -27,7 +27,7 @@ export default function OrderTable({ onOrderClick, onCreateOrder, canManageOrder
             const term = searchTerm.toLowerCase();
             const filtered = orders.filter(order =>
                 order.orderNumber.toLowerCase().includes(term) ||
-                order.customer.companyName.toLowerCase().includes(term) ||
+                (order.customer?.companyName || '').toLowerCase().includes(term) ||
                 order.description.toLowerCase().includes(term)
             );
             setFilteredOrders(filtered);
@@ -37,8 +37,29 @@ export default function OrderTable({ onOrderClick, onCreateOrder, canManageOrder
     const fetchOrders = async () => {
         try {
             const response = await orderService.getAll();
-            setOrders(response.data as Order[]);
-            setFilteredOrders(response.data as Order[]);
+            // Transform backend data to match frontend Order type
+            const transformedOrders = (response.data as any[]).map((order: any) => {
+                // Handle customer data - backend might return customerId as populated object or just ID
+                const customer = order.customer || (order.customerId && typeof order.customerId === 'object' ? order.customerId : null);
+                return {
+                    ...order,
+                    customer: customer ? {
+                        _id: customer._id || '',
+                        companyName: customer.companyName || 'Unknown',
+                        name: customer.name || '',
+                        phone: customer.phone || '',
+                        address: customer.address || ''
+                    } : {
+                        _id: typeof order.customerId === 'string' ? order.customerId : order.customerId?._id || '',
+                        companyName: 'Unknown',
+                        name: '',
+                        phone: '',
+                        address: ''
+                    }
+                };
+            });
+            setOrders(transformedOrders as Order[]);
+            setFilteredOrders(transformedOrders as Order[]);
             setLoading(false);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Failed to fetch orders');
@@ -100,7 +121,7 @@ export default function OrderTable({ onOrderClick, onCreateOrder, canManageOrder
                                     {order.orderNumber}
                                 </Button>
                             </td>
-                            <td>{order.customer.companyName}</td>
+                            <td>{order.customer?.companyName || 'Unknown'}</td>
                             <td>
                                 <ul className="list-unstyled mb-0">
                                     {order.items.map((item: Order['items'][0], index: number) => (

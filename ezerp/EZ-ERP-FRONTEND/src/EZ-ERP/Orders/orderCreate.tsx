@@ -5,6 +5,15 @@ import { useSelector } from 'react-redux';
 import { orderService, customerService, itemService } from '../services/api';
 import type { Order, Customer } from '../types';
 
+const getItemTypeLabel = (type: string) => {
+    const typeMap: { [key: string]: string } = {
+        'MATERIAL': '材料',
+        'PRODUCT': '产品',
+        'SEMI_PRODUCT': '半成品'
+    };
+    return typeMap[type] || type;
+};
+
 export default function OrderCreate() {
     const navigate = useNavigate();
     const currentUser = useSelector((state: any) => state.accountReducer?.currentUser);
@@ -19,19 +28,15 @@ export default function OrderCreate() {
         description: '',
         items: [] as Array<{
             itemId: string;
+            itemName?: string;
+            itemType?: string;
             quantity: number;
             price: number;
         }>,
         totalAmount: 0,
-        status: 'PENDING' as 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED',
+        status: 'PENDING' as Order['status'],
         paymentStatus: 'PENDING' as 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED',
-        shippingAddress: {
-            street: '',
-            city: '',
-            state: '',
-            country: '',
-            zipCode: ''
-        },
+        shippingAddress: '',
         dueDate: new Date().toISOString(),
         notes: '',
         isRework: false,
@@ -52,6 +57,13 @@ export default function OrderCreate() {
     const [showItemModal, setShowItemModal] = useState(false);
     const [editingItem, setEditingItem] = useState<any>(null);
     const [createdItems, setCreatedItems] = useState<any[]>([]);
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const [orderImagePreview, setOrderImagePreview] = useState<string | null>(null);
+    const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+    const [selectedItemImageFile, setSelectedItemImageFile] = useState<File | null>(null);
+    const [uploadingItemImage, setUploadingItemImage] = useState(false);
+    const [itemImagePreview, setItemImagePreview] = useState<string | null>(null);
+    const [itemQuantities, setItemQuantities] = useState<{ [key: string]: number }>({});
 
     useEffect(() => {
         fetchCustomers();
@@ -84,9 +96,25 @@ export default function OrderCreate() {
         }
     };
 
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setSelectedImageFile(file);
+            setOrderImagePreview(URL.createObjectURL(file));
+        }
+    };
+
+    const handleItemImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setSelectedItemImageFile(file);
+            setItemImagePreview(URL.createObjectURL(file));
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!formData.orderNumber || !formData.customerId || !formData.items || formData.items.length === 0 || !formData.dueDate || !formData.shippingAddress.street) {
+        if (!formData.orderNumber || !formData.customerId || !formData.items || formData.items.length === 0 || !formData.dueDate || !formData.shippingAddress) {
             setError('请填写所有必填项并至少添加一件商品');
             return;
         }
@@ -99,7 +127,7 @@ export default function OrderCreate() {
                 totalAmount: formData.totalAmount,
                 status: formData.status,
                 paymentStatus: formData.paymentStatus,
-                shippingAddress: formData.shippingAddress.street,
+                shippingAddress: formData.shippingAddress,
                 dueDate: new Date(formData.dueDate).toISOString(),
                 notes: formData.notes,
                 isRework: formData.isRework,
@@ -107,10 +135,29 @@ export default function OrderCreate() {
                 reworkOrderNumber: formData.reworkOrderNumber,
                 orderImage: formData.orderImage
             };
-            await orderService.create(orderData);
+            
+            setUploadingImage(true);
+            const createdOrder = await orderService.create(orderData);
+            
+            // Upload image if selected
+            if (selectedImageFile) {
+                try {
+                    const orderId = (createdOrder.data as any)._id;
+                    await orderService.uploadImage(orderId, selectedImageFile);
+                    // Image uploaded successfully
+                } catch (uploadErr: any) {
+                    console.error('Failed to upload image:', uploadErr);
+                    setError('订单创建成功，但上传报价单失败: ' + (uploadErr.response?.data?.message || uploadErr.message));
+                    setUploadingImage(false);
+                    return;
+                }
+            }
+            
+            setUploadingImage(false);
             navigate('/EZERP/Orders');
         } catch (err: any) {
             setError(err.response?.data?.message || '创建订单失败');
+            setUploadingImage(false);
         }
     };
 
@@ -123,13 +170,7 @@ export default function OrderCreate() {
         setFormData(prev => ({
             ...prev,
             customerId: selectedCustomer._id,
-            shippingAddress: {
-                street: selectedCustomer.address || '',
-                city: '',
-                state: '',
-                country: '',
-                zipCode: ''
-            }
+            shippingAddress: selectedCustomer.address || ''
         }));
     };
 
@@ -144,6 +185,8 @@ export default function OrderCreate() {
 
         const updatedItems = [...formData.items, {
             itemId,
+            itemName: newItem.itemName,
+            itemType: newItem.itemType,
             quantity: newItem.quantity,
             price: newItem.price
         }];
@@ -185,6 +228,8 @@ export default function OrderCreate() {
                 orderNumber: formData.orderNumber || ''
             };
 
+            let createdItemsList: any[] = [];
+            
             if (newItem.itemType === 'PRODUCT') {
                 // Create both PRODUCT and SEMI_PRODUCT items
                 const productItem = await itemService.create({
@@ -197,11 +242,48 @@ export default function OrderCreate() {
                     type: 'SEMI_PRODUCT'
                 });
 
-                setCreatedItems(prev => [...prev, productItem.data, semiproductItem.data]);
+                createdItemsList = [productItem.data, semiproductItem.data];
+                setCreatedItems(prev => [...prev, ...createdItemsList]);
             } else {
                 const createdItem = await itemService.create(itemData);
+                createdItemsList = [createdItem.data];
                 setCreatedItems(prev => [...prev, createdItem.data]);
             }
+
+            // Upload item image if selected
+            if (selectedItemImageFile && createdItemsList.length > 0) {
+                setUploadingItemImage(true);
+                try {
+                    // Upload to the first created item (or both if PRODUCT type)
+                    for (const item of createdItemsList) {
+                        await itemService.uploadImage(item._id, selectedItemImageFile);
+                    }
+                    setSelectedItemImageFile(null);
+                    setItemImagePreview(null);
+                } catch (uploadErr: any) {
+                    console.error('Failed to upload item image:', uploadErr);
+                    setError('商品创建成功，但上传加工图纸失败: ' + (uploadErr.response?.data?.message || uploadErr.message));
+                } finally {
+                    setUploadingItemImage(false);
+                }
+            }
+
+            // Add created items to order items
+            const newOrderItems = createdItemsList.map(createdItem => ({
+                itemId: createdItem._id,
+                itemName: createdItem.name,
+                itemType: createdItem.type,
+                quantity: newItem.quantity,
+                price: newItem.price || 0
+            }));
+            const updatedItems = [...formData.items, ...newOrderItems];
+            const totalAmount = updatedItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+            
+            setFormData(prev => ({
+                ...prev,
+                items: updatedItems,
+                totalAmount
+            }));
 
             setShowItemModal(false);
             setNewItem({
@@ -214,6 +296,8 @@ export default function OrderCreate() {
                 standard: '',
                 description: ''
             });
+            setSelectedItemImageFile(null);
+            setItemImagePreview(null);
         } catch (err: any) {
             setError(err.response?.data?.message || '创建商品失败');
         }
@@ -261,6 +345,8 @@ export default function OrderCreate() {
                 const updatedOrderItems = [...formData.items];
                 updatedOrderItems[orderItemIndex] = {
                     ...updatedOrderItems[orderItemIndex],
+                    itemName: newItem.itemName,
+                    itemType: newItem.itemType,
                     quantity: newItem.quantity,
                     price: newItem.price
                 };
@@ -291,13 +377,33 @@ export default function OrderCreate() {
         }
     };
 
-    const handleAddExistingItem = (item: any) => {
+    const handleAddExistingItem = (item: any, orderQuantity: number = 1) => {
         const updatedItems = [...formData.items, {
             itemId: item._id,
-            quantity: item.quantity,
+            itemName: item.name,
+            itemType: item.type,
+            quantity: orderQuantity, // 使用订单中的数量，而不是商品库存数量
             price: item.price || 0
         }];
         const totalAmount = updatedItems.reduce((sum, orderItem) => sum + (orderItem.quantity * orderItem.price), 0);
+
+        setFormData(prev => ({
+            ...prev,
+            items: updatedItems,
+            totalAmount
+        }));
+    };
+
+    const handleUpdateItemQuantity = (index: number, newQuantity: number) => {
+        if (newQuantity < 1) {
+            return; // 数量不能小于1
+        }
+        const updatedItems = [...formData.items];
+        updatedItems[index] = {
+            ...updatedItems[index],
+            quantity: newQuantity
+        };
+        const totalAmount = updatedItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
 
         setFormData(prev => ({
             ...prev,
@@ -393,11 +499,12 @@ export default function OrderCreate() {
                                         value={formData.status}
                                         onChange={(e) => setFormData({ ...formData, status: e.target.value as Order['status'] })}
                                     >
+                                        <option value="">选择状态</option>
+                                        <option value="BIDDING">投标中</option>
                                         <option value="PENDING">待处理</option>
                                         <option value="PROCESSING">处理中</option>
-                                        <option value="SHIPPED">已发货</option>
-                                        <option value="DELIVERED">已送达</option>
                                         <option value="CANCELLED">已取消</option>
+                                        <option value="COMPLETED">已完成</option>
                                     </Form.Select>
                                 </Form.Group>
                             </Col>
@@ -478,6 +585,28 @@ export default function OrderCreate() {
                         )}
 
                         <Form.Group className="mb-3">
+                            <Form.Label>报价单</Form.Label>
+                            <div>
+                                <Form.Control
+                                    type="file"
+                                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                    onChange={handleImageSelect}
+                                    disabled={uploadingImage}
+                                />
+                                {orderImagePreview && (
+                                    <div className="mt-2">
+                                        <small className="text-muted">已选择文件: {selectedImageFile?.name}</small>
+                                        {orderImagePreview.match(/\.(jpg|jpeg|png)$/i) && (
+                                            <div className="mt-2">
+                                                <img src={orderImagePreview} alt="预览" style={{ maxWidth: '200px', maxHeight: '200px' }} />
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
                             <Form.Label>客户</Form.Label>
                             <Form.Control
                                 type="text"
@@ -501,56 +630,16 @@ export default function OrderCreate() {
                         </Form.Group>
 
                         <Row>
-                            <Col md={6}>
+                            <Col md={12}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>街道*</Form.Label>
+                                    <Form.Label>收货地址*</Form.Label>
                                     <Form.Control
-                                        type="text"
-                                        value={formData.shippingAddress.street}
-                                        onChange={(e) => setFormData({ ...formData, shippingAddress: { ...formData.shippingAddress, street: e.target.value } })}
+                                        as="textarea"
+                                        rows={3}
+                                        value={formData.shippingAddress}
+                                        onChange={(e) => setFormData({ ...formData, shippingAddress: e.target.value })}
+                                        placeholder="请输入完整的收货地址"
                                         required
-                                    />
-                                </Form.Group>
-                            </Col>
-                            <Col md={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>城市</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        value={formData.shippingAddress.city}
-                                        onChange={(e) => setFormData({ ...formData, shippingAddress: { ...formData.shippingAddress, city: e.target.value } })}
-                                    />
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col md={4}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>省/州</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        value={formData.shippingAddress.state}
-                                        onChange={(e) => setFormData({ ...formData, shippingAddress: { ...formData.shippingAddress, state: e.target.value } })}
-                                    />
-                                </Form.Group>
-                            </Col>
-                            <Col md={4}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>国家</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        value={formData.shippingAddress.country}
-                                        onChange={(e) => setFormData({ ...formData, shippingAddress: { ...formData.shippingAddress, country: e.target.value } })}
-                                    />
-                                </Form.Group>
-                            </Col>
-                            <Col md={4}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>邮编</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        value={formData.shippingAddress.zipCode}
-                                        onChange={(e) => setFormData({ ...formData, shippingAddress: { ...formData.shippingAddress, zipCode: e.target.value } })}
                                     />
                                 </Form.Group>
                             </Col>
@@ -625,7 +714,8 @@ export default function OrderCreate() {
                                                 <th>类型</th>
                                                 <th>尺寸</th>
                                                 <th>标准</th>
-                                                <th>数量</th>
+                                                <th>库存数量</th>
+                                                <th>订单数量</th>
                                                 <th>单价</th>
                                                 <th>操作</th>
                                             </tr>
@@ -638,6 +728,18 @@ export default function OrderCreate() {
                                                     <td>{item.size || '-'}</td>
                                                     <td>{item.standard || '-'}</td>
                                                     <td>{item.quantity}</td>
+                                                    <td>
+                                                        <Form.Control
+                                                            type="number"
+                                                            min="1"
+                                                            value={itemQuantities[item._id] || 1}
+                                                            onChange={(e) => setItemQuantities(prev => ({
+                                                                ...prev,
+                                                                [item._id]: parseInt(e.target.value) || 1
+                                                            }))}
+                                                            style={{ width: '80px' }}
+                                                        />
+                                                    </td>
                                                     <td>${(item.price || 0).toFixed(2)}</td>
                                                     <td>
                                                         <Button
@@ -651,7 +753,7 @@ export default function OrderCreate() {
                                                         <Button
                                                             variant="outline-success"
                                                             size="sm"
-                                                            onClick={() => handleAddExistingItem(item)}
+                                                            onClick={() => handleAddExistingItem(item, itemQuantities[item._id] || 1)}
                                                         >
                                                             添加到订单
                                                         </Button>
@@ -668,7 +770,7 @@ export default function OrderCreate() {
                             <Table striped bordered hover className="mt-3">
                                 <thead>
                                     <tr>
-                                        <th>商品ID</th>
+                                        <th>商品名称</th>
                                         <th>数量</th>
                                         <th>单价</th>
                                         <th>小计</th>
@@ -678,8 +780,22 @@ export default function OrderCreate() {
                                 <tbody>
                                     {formData.items.map((item, index) => (
                                         <tr key={index}>
-                                            <td>{item.itemId}</td>
-                                            <td>{item.quantity}</td>
+                                            <td>
+                                                {item.itemName || '未知商品'}
+                                                {item.itemType && ` (${getItemTypeLabel(item.itemType)})`}
+                                            </td>
+                                            <td>
+                                                <Form.Control
+                                                    type="number"
+                                                    min="1"
+                                                    value={item.quantity}
+                                                    onChange={(e) => {
+                                                        const newQuantity = parseInt(e.target.value) || 1;
+                                                        handleUpdateItemQuantity(index, newQuantity);
+                                                    }}
+                                                    style={{ width: '80px' }}
+                                                />
+                                            </td>
                                             <td>${item.price.toFixed(2)}</td>
                                             <td>${(item.quantity * item.price).toFixed(2)}</td>
                                             <td>
@@ -812,6 +928,28 @@ export default function OrderCreate() {
                                 onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
                                 placeholder="输入商品描述"
                             />
+                        </Form.Group>
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>加工图纸</Form.Label>
+                            <div>
+                                <Form.Control
+                                    type="file"
+                                    accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                    onChange={handleItemImageSelect}
+                                    disabled={uploadingItemImage}
+                                />
+                                {itemImagePreview && (
+                                    <div className="mt-2">
+                                        <small className="text-muted">已选择文件: {selectedItemImageFile?.name}</small>
+                                        {itemImagePreview.match(/\.(jpg|jpeg|png)$/i) && (
+                                            <div className="mt-2">
+                                                <img src={itemImagePreview} alt="预览" style={{ maxWidth: '200px', maxHeight: '200px' }} />
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </Form.Group>
 
                         <Alert variant="info">

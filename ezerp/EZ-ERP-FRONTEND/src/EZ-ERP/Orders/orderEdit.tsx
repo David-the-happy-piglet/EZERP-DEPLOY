@@ -26,6 +26,9 @@ export default function OrderEdit() {
     const [showItemModal, setShowItemModal] = useState(false);
     const [editingItem, setEditingItem] = useState<any>(null);
     const [createdItems, setCreatedItems] = useState<any[]>([]);
+    const [uploadingImage, setUploadingImage] = useState(false);
+    const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+    const [orderImageUrl, setOrderImageUrl] = useState<string | null>(null);
     const currentUser = useSelector((state: any) => state.accountReducer?.currentUser);
     const canManageOrders = hasAnyRole(currentUser, Role.ADMIN, Role.MKT);
 
@@ -37,7 +40,47 @@ export default function OrderEdit() {
     const fetchOrderDetails = async () => {
         try {
             const response = await orderService.getByNumber(orderNumber!);
-            setOrder(response.data as Order);
+            const orderData = response.data as any;
+            // Transform backend data to match frontend Order type
+            const customer = orderData.customer || (orderData.customerId && typeof orderData.customerId === 'object' ? orderData.customerId : null);
+            const transformedOrder = {
+                ...orderData,
+                customer: customer ? {
+                    _id: customer._id || '',
+                    companyName: customer.companyName || 'Unknown',
+                    name: customer.name || '',
+                    phone: customer.phone || '',
+                    address: customer.address || ''
+                } : {
+                    _id: typeof orderData.customerId === 'string' ? orderData.customerId : orderData.customerId?._id || '',
+                    companyName: 'Unknown',
+                    name: '',
+                    phone: '',
+                    address: ''
+                }
+            };
+            setOrder(transformedOrder as Order);
+            
+            // Fetch order image/document URL if exists (don't block on error)
+            if (transformedOrder.orderImage) {
+                try {
+                    const imageResponse = await orderService.getImageUrl(transformedOrder._id);
+                    const url = (imageResponse.data as any).url;
+                    // Ensure it's a full URL (relative paths work, but make sure it's accessible)
+                    setOrderImageUrl(url.startsWith('http') ? url : `${window.location.origin}${url}`);
+                } catch (imgErr) {
+                    // Image/document not found is not a critical error, just log it
+                    console.error('Failed to fetch order document:', imgErr);
+                    // Still try to create URL from orderImage path if available
+                    if (transformedOrder.orderImage) {
+                        const url = `/files/${transformedOrder.orderImage}`;
+                        setOrderImageUrl(`${window.location.origin}${url}`);
+                    } else {
+                        setOrderImageUrl(null);
+                    }
+                }
+            }
+            
             setLoading(false);
         } catch (err: any) {
             setError(err.response?.data?.message || '获取订单详情失败');
@@ -68,7 +111,7 @@ export default function OrderEdit() {
                 status: order.status,
                 paymentStatus: order.paymentStatus,
                 dueDate: new Date(order.dueDate).toISOString(),
-                shippingAddress: order.shippingAddress.street,
+                shippingAddress: typeof order.shippingAddress === 'string' ? order.shippingAddress : String(order.shippingAddress),
                 notes: order.notes
             });
             navigate(`/EZERP/Orders/${orderNumber}`);
@@ -274,35 +317,60 @@ export default function OrderEdit() {
         if (!order) return;
         const selectedCustomer = customers.find(c => c._id === customerId);
         if (selectedCustomer) {
-            setOrder({
-                ...order,
-                customer: {
-                    _id: selectedCustomer._id || '',
-                    companyName: selectedCustomer.companyName || '',
-                    name: selectedCustomer.name || '',
-                    email: '', // No email field in customer schema
-                    phone: selectedCustomer.phone || '',
-                    address: {
-                        street: selectedCustomer.address || '', // Use string address as street
-                        city: '',
-                        state: '',
-                        country: '',
-                        zipCode: ''
-                    }
-                }
-            });
+                setOrder({
+                    ...order,
+                    customer: {
+                        _id: selectedCustomer._id || '',
+                        companyName: selectedCustomer.companyName || '',
+                        name: selectedCustomer.name || '',
+                        phone: selectedCustomer.phone || '',
+                        address: selectedCustomer.address || ''
+                    },
+                    shippingAddress: selectedCustomer.address || ''
+                });
         }
     };
 
-    const handleAddressChange = (field: string, value: string) => {
+    const handleAddressChange = (value: string) => {
         if (!order) return;
         setOrder({
             ...order,
-            shippingAddress: {
-                ...order.shippingAddress,
-                [field]: value
-            }
+            shippingAddress: value
         });
+    };
+
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setSelectedImageFile(file);
+        }
+    };
+
+    const handleImageUpload = async () => {
+        if (!selectedImageFile || !order) return;
+
+        setUploadingImage(true);
+        setError(null);
+
+        try {
+            const uploadResponse = await orderService.uploadImage(order._id, selectedImageFile);
+            setOrder({ ...order, orderImage: (uploadResponse.data as any).orderImage } as any);
+            setSelectedImageFile(null);
+            // Refresh document URL
+            try {
+                const imageResponse = await orderService.getImageUrl(order._id);
+                const url = (imageResponse.data as any).url;
+                setOrderImageUrl(url.startsWith('http') ? url : `${window.location.origin}${url}`);
+            } catch (imgErr) {
+                // If API call fails, construct URL from orderImage path
+                const url = `/files/${(uploadResponse.data as any).orderImage}`;
+                setOrderImageUrl(`${window.location.origin}${url}`);
+            }
+        } catch (err: any) {
+            setError(err.response?.data?.message || '上传报价单失败');
+        } finally {
+            setUploadingImage(false);
+        }
     };
 
     if (loading) {
@@ -363,11 +431,11 @@ export default function OrderEdit() {
                                         value={order.status}
                                         onChange={(e) => setOrder({ ...order, status: e.target.value as Order['status'] })}
                                     >
+                                        <option value="BIDDING">投标中</option>
                                         <option value="PENDING">待处理</option>
                                         <option value="PROCESSING">处理中</option>
-                                        <option value="SHIPPED">已发货</option>
-                                        <option value="DELIVERED">已送达</option>
                                         <option value="CANCELLED">已取消</option>
+                                        <option value="COMPLETED">已完成</option>
                                     </Form.Select>
                                 </Form.Group>
                             </Col>
@@ -392,7 +460,7 @@ export default function OrderEdit() {
                                 <Form.Group className="mb-3">
                                     <Form.Label>客户</Form.Label>
                                     <Form.Select
-                                        value={order.customer._id}
+                                        value={order.customer?._id || ''}
                                         onChange={(e) => handleCustomerSelect(e.target.value)}
                                     >
                                         <option value="">选择客户</option>
@@ -408,61 +476,16 @@ export default function OrderEdit() {
 
                         <Row>
                             <Col md={12}>
-                                <h5>收货地址</h5>
-                                <Row>
-                                    <Col md={6}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>街道</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                value={order.shippingAddress.street}
-                                                onChange={(e) => handleAddressChange('street', e.target.value)}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={6}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>城市</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                value={order.shippingAddress.city}
-                                                onChange={(e) => handleAddressChange('city', e.target.value)}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
-                                <Row>
-                                    <Col md={4}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>省/州</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                value={order.shippingAddress.state}
-                                                onChange={(e) => handleAddressChange('state', e.target.value)}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={4}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>国家</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                value={order.shippingAddress.country}
-                                                onChange={(e) => handleAddressChange('country', e.target.value)}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                    <Col md={4}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>邮编</Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                value={order.shippingAddress.zipCode}
-                                                onChange={(e) => handleAddressChange('zipCode', e.target.value)}
-                                            />
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>收货地址</Form.Label>
+                                    <Form.Control
+                                        as="textarea"
+                                        rows={3}
+                                        value={typeof order.shippingAddress === 'string' ? order.shippingAddress : ''}
+                                        onChange={(e) => handleAddressChange(e.target.value)}
+                                        placeholder="请输入完整的收货地址"
+                                    />
+                                </Form.Group>
                             </Col>
                         </Row>
 
@@ -651,6 +674,52 @@ export default function OrderEdit() {
                                         value={order.notes || ''}
                                         onChange={(e) => setOrder({ ...order, notes: e.target.value })}
                                     />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+
+                        <Row className="mt-4">
+                            <Col>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>报价单</Form.Label>
+                                    <div>
+                                        {orderImageUrl && (
+                                            <div className="mb-2">
+                                                <Button
+                                                    variant="outline-primary"
+                                                    as="a"
+                                                    href={orderImageUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                >
+                                                    查看/下载报价单
+                                                </Button>
+                                            </div>
+                                        )}
+                                        <div className="d-flex gap-2 align-items-end">
+                                            <Form.Control
+                                                type="file"
+                                                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                                                onChange={handleImageSelect}
+                                                disabled={uploadingImage}
+                                                style={{ flex: 1 }}
+                                            />
+                                            {selectedImageFile && (
+                                                <Button
+                                                    variant="primary"
+                                                    onClick={handleImageUpload}
+                                                    disabled={uploadingImage}
+                                                >
+                                                    {uploadingImage ? '上传中...' : '上传/更改报价单'}
+                                                </Button>
+                                            )}
+                                        </div>
+                                        {selectedImageFile && (
+                                            <small className="text-muted mt-1 d-block">
+                                                已选择: {selectedImageFile.name}
+                                            </small>
+                                        )}
+                                    </div>
                                 </Form.Group>
                             </Col>
                         </Row>

@@ -1,9 +1,17 @@
 import express from 'express';
+import multer from 'multer';
 import itemDAO from './dao.js';
-import { uploadImage , getImageUrl} from '../utils/s3.js';
-
+import { saveFile, getFilePath, fileExists } from '../utils/fileStorage.js';
 
 const router = express.Router();
+
+// Configure multer for file uploads (in memory)
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 10 * 1024 * 1024 // 10MB limit
+    }
+});
 
 // Middleware to validate item data
 const validateItemData = (req, res, next) => {
@@ -40,7 +48,14 @@ router.get('/:id', async (req, res) => {
 router.get('/image/:id', async (req, res) => {
     try {
         const item = await itemDAO.getItemById(req.params.id);
-        res.status(200).json(await getImageUrl(item.imagePath));
+        if (!item || !item.imagePath) {
+            return res.status(404).json({ message: 'Item image not found' });
+        }
+        if (!fileExists(item.imagePath)) {
+            return res.status(404).json({ message: 'Image file not found' });
+        }
+        // Return the URL path for the client to access
+        res.status(200).json({ url: `/files/${item.imagePath}` });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching item image', error: error.message });
     }
@@ -63,9 +78,14 @@ router.post('/', async (req, res) => {
     }
 });
 
-router.post('/upload-image', async (req, res) => {
+router.post('/:id/upload-image', upload.single('file'), async (req, res) => {
     try {
-        res.status(200).json(await itemDAO.updateItemImage(req.params.id, req.body.imagePath));
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+        const savedFile = await saveFile(req.file, 'item');
+        const item = await itemDAO.updateItemImage(req.params.id, savedFile.path);
+        res.status(200).json(item);
     } catch (error) {
         res.status(500).json({ message: 'Error uploading image', error: error.message });
     }

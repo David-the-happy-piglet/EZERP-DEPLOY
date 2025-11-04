@@ -26,15 +26,8 @@ export interface Order {
         _id: string;
         companyName: string;
         name: string;
-        email: string;
         phone: string;
-        address: {
-            street: string;
-            city: string;
-            state: string;
-            country: string;
-            zipCode: string;
-        };
+        address: string;
     };
     items: Array<{
         itemId: string;
@@ -42,17 +35,15 @@ export interface Order {
         price: number;
     }>;
     totalAmount: number;
-    status: 'PENDING' | 'PROCESSING' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+    status: 'BIDDING' | 'PENDING' | 'PROCESSING' | 'CANCELLED' | 'COMPLETED';
     paymentStatus: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
-    shippingAddress: {
-        street: string;
-        city: string;
-        state: string;
-        country: string;
-        zipCode: string;
-    };
+    shippingAddress: string;
     dueDate: string;
     notes?: string;
+    isRework: boolean;
+    reworkReason?: string;
+    reworkOrderNumber?: string;
+    orderImage?: string;
     createdAt: string;
     updatedAt: string;
 } 

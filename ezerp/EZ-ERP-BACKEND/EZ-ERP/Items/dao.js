@@ -1,15 +1,12 @@
 import Item from './model.js';
-import { uploadImage } from '../utils/s3.js';
+import { deleteFile } from '../utils/fileStorage.js';
 import { v4 as uuidv4 } from 'uuid';
 
 class ItemDAO {
     async createItem(itemData) {
         try {
             const item = new Item({ _id: itemData._id || uuidv4(), ...itemData });
-            if (itemData.imagePath) {
-                const image = await uploadImage(itemData.imagePath);
-                item.imagePath = image.key;
-            }
+            // imagePath should already be set to the relative path from the upload route
             return await item.save();
         } catch (error) {
             throw new Error(`Error creating item: ${error.message}`);
@@ -47,8 +44,12 @@ class ItemDAO {
 
     async updateItemImage(id, imagePath) {
         try {
-            const image = await uploadImage(imagePath);
-            return await Item.findByIdAndUpdate(id, { imagePath: image.key }, { new: true });
+            // Get the current item to delete old image
+            const currentItem = await Item.findById(id);
+            if (currentItem && currentItem.imagePath) {
+                deleteFile(currentItem.imagePath);
+            }
+            return await Item.findByIdAndUpdate(id, { imagePath }, { new: true });
         } catch (error) {
             throw new Error(`Error updating item image: ${error.message}`);
         }

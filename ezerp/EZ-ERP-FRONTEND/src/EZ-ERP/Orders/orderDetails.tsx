@@ -13,6 +13,7 @@ export default function OrderDetails() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [orderDocumentUrl, setOrderDocumentUrl] = useState<string | null>(null);
     const currentUser = useSelector((state: any) => state.accountReducer?.currentUser);
     const canManageOrders = hasAnyRole(currentUser, Role.ADMIN, Role.MKT);
 
@@ -23,7 +24,45 @@ export default function OrderDetails() {
     const fetchOrderDetails = async () => {
         try {
             const response = await orderService.getByNumber(orderNumber!);
-            setOrder(response.data as Order);
+            const orderData = response.data as any;
+            // Transform backend data to match frontend Order type
+            const customer = orderData.customer || (orderData.customerId && typeof orderData.customerId === 'object' ? orderData.customerId : null);
+            const transformedOrder = {
+                ...orderData,
+                customer: customer ? {
+                    _id: customer._id || '',
+                    companyName: customer.companyName || 'Unknown',
+                    name: customer.name || '',
+                    phone: customer.phone || '',
+                    address: customer.address || ''
+                } : {
+                    _id: typeof orderData.customerId === 'string' ? orderData.customerId : orderData.customerId?._id || '',
+                    companyName: 'Unknown',
+                    name: '',
+                    phone: '',
+                    address: ''
+                }
+            };
+            setOrder(transformedOrder as Order);
+            
+            // Fetch order document URL if exists (PDF or image)
+            if (transformedOrder.orderImage) {
+                try {
+                    const imageResponse = await orderService.getImageUrl(transformedOrder._id);
+                    const url = (imageResponse.data as any).url;
+                    // Ensure it's a full URL
+                    setOrderDocumentUrl(url.startsWith('http') ? url : `${window.location.origin}${url}`);
+                } catch (imgErr) {
+                    // Document not found is not a critical error
+                    console.error('Failed to fetch order document:', imgErr);
+                    // Still try to create URL from orderImage path if available
+                    if (transformedOrder.orderImage) {
+                        const url = `/files/${transformedOrder.orderImage}`;
+                        setOrderDocumentUrl(`${window.location.origin}${url}`);
+                    }
+                }
+            }
+            
             setLoading(false);
         } catch (err: any) {
             setError(err.response?.data?.message || '获取订单详情失败');
@@ -81,17 +120,17 @@ export default function OrderDetails() {
                         <Col md={6}>
                             <h5>订单信息</h5>
                             <p><strong>订单号：</strong> {order.orderNumber}</p>
-                            <p><strong>状态：</strong> <Badge bg={order.status === 'DELIVERED' ? 'success' : 'primary'}>{order.status}</Badge></p>
+                            <p><strong>状态：</strong> <Badge bg={order.status === 'COMPLETED' ? 'success' : 'primary'}>{order.status}</Badge></p>
                             <p><strong>付款状态：</strong> <Badge bg={order.paymentStatus === 'PAID' ? 'success' : 'warning'}>{order.paymentStatus}</Badge></p>
                             <p><strong>交付日期：</strong> {new Date(order.dueDate).toLocaleDateString()}</p>
                             <p><strong>描述：</strong> {order.description}</p>
                         </Col>
                         <Col md={6}>
                             <h5>客户信息</h5>
-                            <p><strong>公司：</strong> {order.customer.companyName}</p>
-                            <p><strong>联系人：</strong> {order.customer.name}</p>
-                            <p><strong>邮箱：</strong> {order.customer.email}</p>
-                            <p><strong>电话：</strong> {order.customer.phone}</p>
+                            <p><strong>公司：</strong> {order.customer?.companyName || 'Unknown'}</p>
+                            <p><strong>联系人：</strong> {order.customer?.name || '-'}</p>
+                            <p><strong>电话：</strong> {order.customer?.phone || '-'}</p>
+                            <p><strong>地址：</strong> {order.customer?.address || '-'}</p>
                         </Col>
                     </Row>
 
@@ -131,12 +170,27 @@ export default function OrderDetails() {
                         <Col>
                             <h5>收货地址</h5>
                             <p>
-                                {order.shippingAddress.street}<br />
-                                {order.shippingAddress.city}，{order.shippingAddress.state} {order.shippingAddress.zipCode}<br />
-                                {order.shippingAddress.country}
+                                {order.shippingAddress}
                             </p>
                         </Col>
                     </Row>
+
+                    {orderDocumentUrl && (
+                        <Row className="mt-4">
+                            <Col>
+                                <h5>报价单</h5>
+                                <Button
+                                    variant="outline-primary"
+                                    as="a"
+                                    href={orderDocumentUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    查看/下载报价单
+                                </Button>
+                            </Col>
+                        </Row>
+                    )}
 
                     {order.notes && (
                         <Row className="mt-4">

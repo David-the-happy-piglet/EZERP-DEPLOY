@@ -1,6 +1,6 @@
 import Order from './model.js';
 import { OrderStatus, PaymentStatus } from './schema.js';
-import { uploadImage } from '../utils/s3.js';
+import { deleteFile } from '../utils/fileStorage.js';
 import { v4 as uuidv4 } from 'uuid';
 
 class OrderDAO {
@@ -16,23 +16,19 @@ class OrderDAO {
             if (!Array.isArray(orderData.items) || orderData.items.length === 0) {
                 throw new Error('Order must contain at least one item');
             }
+            // Validate each item has itemId (items should already be created in frontend)
             for (const item of orderData.items) {
-                if (!item._id) {
-                    try {
-                        const newItem = await itemDAO.createItem(item);
-                        item = {
-                            itemId: newItem._id,
-                            price: item.price ?? 0,
-                            quantity: item.quantity ?? 1
-                        };
-                    } catch (error) {
-                        throw new Error(`Error creating item: ${error.message}`);
-                    }
+                if (!item.itemId) {
+                    throw new Error('Each item must have an itemId');
+                }
+                if (!item.quantity || item.quantity < 1) {
+                    throw new Error('Each item must have a valid quantity (>= 1)');
+                }
+                if (item.price === undefined || item.price < 0) {
+                    throw new Error('Each item must have a valid price (>= 0)');
                 }
             }
-            if (orderData.orderImagePath) {
-                orderData.orderImage = (await uploadImage(orderData.orderImagePath)).key;
-            }
+            // orderImage should already be set to the relative path from the upload route
             // Validate each item
             const order = new Order({
                 ...orderData,
@@ -88,7 +84,7 @@ class OrderDAO {
     // Get all orders
     async getAllOrders() {
         try {
-            return await Order.find({}).sort({ createdAt: -1 });
+            return await Order.find({}).populate('customerId', 'companyName name phone address').sort({ createdAt: -1 });
         } catch (error) {
             throw new Error(`Error fetching orders: ${error.message}`);
         }
@@ -97,7 +93,7 @@ class OrderDAO {
     // Get order by ID
     async getOrderById(id) {
         try {
-            return await Order.findById(id);
+            return await Order.findById(id).populate('customerId', 'companyName name phone address');
         } catch (error) {
             throw new Error(`Error finding order: ${error.message}`);
         }
@@ -106,7 +102,7 @@ class OrderDAO {
     // Get order by order number
     async getOrderByNumber(orderNumber) {
         try {
-            return await Order.findOne({ orderNumber });
+            return await Order.findOne({ orderNumber }).populate('customerId', 'companyName name phone address');
         } catch (error) {
             throw new Error(`Error finding order by number: ${error.message}`);
         }
@@ -155,10 +151,14 @@ class OrderDAO {
 
     async updateOrderImage(id, imagePath) {
         try {
-            image = await uploadImage(imagePath);
+            // Get the current order to delete old image
+            const currentOrder = await Order.findById(id);
+            if (currentOrder && currentOrder.orderImage) {
+                deleteFile(currentOrder.orderImage);
+            }
             const order = await Order.findByIdAndUpdate(
                 id,
-                { orderImage: image.key },
+                { orderImage: imagePath, updatedAt: new Date() },
                 { new: true }
             );
             return order;

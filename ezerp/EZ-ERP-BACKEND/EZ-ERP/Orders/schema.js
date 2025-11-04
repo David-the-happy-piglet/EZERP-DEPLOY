@@ -73,11 +73,8 @@ const orderSchema = new mongoose.Schema({
         default: PaymentStatus.PENDING
     },
     shippingAddress: {
-        street: String,
-        city: String,
-        state: String,
-        country: String,
-        zipCode: String
+        type: String,
+        required: true
     },
     dueDate: {
         type: Date,

@@ -55,6 +55,13 @@ const startServer = async () => {
         });
 
         app.use(express.json());
+        // Serve uploaded files statically
+        const path = (await import('path')).default;
+        const { fileURLToPath } = await import('url');
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = path.dirname(__filename);
+        app.use('/files', express.static(path.join(__dirname, 'files')));
+        
         // Respect reverse proxy settings (e.g., load balancer)
         const trustProxy = process.env.TRUST_PROXY === '1' || process.env.TRUST_PROXY === 'true';
         app.set('trust proxy', trustProxy ? 1 : false);

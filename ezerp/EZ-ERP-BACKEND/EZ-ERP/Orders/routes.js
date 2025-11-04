@@ -1,21 +1,25 @@
 import express from 'express';
+import multer from 'multer';
 import orderDAO from './dao.js';
 import { OrderStatus, PaymentStatus } from './schema.js';
-import { getImageUrl } from '../utils/s3.js';
+import { saveFile, getFilePath, fileExists } from '../utils/fileStorage.js';
 const router = express.Router();
+
+// Configure multer for file uploads (in memory)
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 10 * 1024 * 1024 // 10MB limit
+    }
+});
 
 // Middleware to validate order data
 const validateOrderData = (req, res, next) => {
-    const { orderNumber, customer, items, totalAmount, description } = req.body;
+    const { orderNumber, customerId, items, totalAmount, description } = req.body;
 
     // Required fields validation
-    if (!orderNumber || !customer || !items || !totalAmount || !description) {
-        return res.status(400).json({ error: 'Order number, customer, items, total amount, and description are required' });
-    }
-
-    // Validate customer data
-    if (!customer._id || !customer.companyName || !customer.name || !customer.email) {
-        return res.status(400).json({ error: 'Customer ID, company name, name, and email are required' });
+    if (!orderNumber || !customerId || !items || !description) {
+        return res.status(400).json({ error: 'Order number, customer ID, items, and description are required' });
     }
 
     // Validate items array
@@ -25,19 +29,19 @@ const validateOrderData = (req, res, next) => {
 
     // Validate each item
     for (const item of items) {
-        if (!item.productId || !item.productName || !item.quantity || !item.price) {
-            return res.status(400).json({ error: 'Each item must have productId, productName, quantity, and price' });
+        if (!item.itemId) {
+            return res.status(400).json({ error: 'Each item must have itemId' });
         }
-        if (item.quantity < 1) {
+        if (!item.quantity || item.quantity < 1) {
             return res.status(400).json({ error: 'Item quantity must be at least 1' });
         }
-        if (item.price < 0) {
+        if (item.price !== undefined && item.price < 0) {
             return res.status(400).json({ error: 'Item price cannot be negative' });
         }
     }
 
-    // Validate total amount
-    if (totalAmount < 0) {
+    // Validate total amount (allow 0)
+    if (totalAmount !== undefined && totalAmount < 0) {
         return res.status(400).json({ error: 'Total amount cannot be negative' });
     }
 
@@ -127,7 +131,15 @@ router.get('/payment/:paymentStatus', async (req, res) => {
 router.get('/image/:id', async (req, res) => {
     try {
         const order = await orderDAO.getOrderById(req.params.id);
-        res.status(200).json(await getImageUrl(order.orderImage));
+        if (!order || !order.orderImage) {
+            return res.status(404).json({ message: 'Order image not found' });
+        }
+        const filePath = getFilePath(order.orderImage);
+        if (!fileExists(order.orderImage)) {
+            return res.status(404).json({ message: 'Image file not found' });
+        }
+        // Return the URL path for the client to access
+        res.status(200).json({ url: `/files/${order.orderImage}` });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching order image', error: error.message });
     }
@@ -191,10 +203,30 @@ router.post('/:id/items', async (req, res) => {
     }
 });
 
-router.post('/:id/upload-image', async (req, res) => {
+router.post('/:id/upload-image', upload.single('file'), async (req, res) => {
     try {
-        res.status(200).json(await orderDAO.updateOrderImage(req.params.id, req.body.imagePath));
+        if (!req.file) {
+            console.error('No file in request');
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+        
+        console.log('File upload request received:', {
+            fieldname: req.file.fieldname,
+            originalname: req.file.originalname,
+            mimetype: req.file.mimetype,
+            size: req.file.size,
+            bufferSize: req.file.buffer?.length
+        });
+        
+        const savedFile = await saveFile(req.file, 'order');
+        console.log('File saved:', savedFile);
+        
+        const order = await orderDAO.updateOrderImage(req.params.id, savedFile.path);
+        console.log('Order updated with image path:', savedFile.path);
+        
+        res.status(200).json(order);
     } catch (error) {
+        console.error('Error uploading image:', error);
         res.status(500).json({ message: 'Error uploading image', error: error.message });
     }
 });
